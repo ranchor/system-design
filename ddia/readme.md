@@ -1,3 +1,26 @@
+# Table of contents
+
+- [Chapter 1: Reliable, Scalable, and Maintainable Applications](#chapter-1-reliable-scalable-and-maintainable-applications)
+    - [Reliability](#reliability)
+    - [Scalability:](#scalability)
+    - [Maintainability:](#maintainability)
+- [Chapter 2: Data Models and Query Languages](#chapter-2-data-models-and-query-languages)
+    - [Relational model vs document model](#relational-model-vs-document-model)
+    - [Query languages for data](#query-languages-for-data)
+    - [Graph-like data models](#graph-like-data-models)
+- [Chapter 3: Storage and Retrieval](#chapter-3-storage-and-retrieval)
+    - [Transactional optimized (OLTP)](#transactional-optimized-oltp)
+    - [Analytics optimized (OLAP):](#analytics-optimized-olap)
+    - [Transactional optimized (OLTP) vs Analytics optimized (OLAP)](#transactional-optimized-oltp-vs-analytics-optimized-olap)
+    - [Column-Oriented Storage](#column-oriented-storage)
+- [Chapter 5: Replication](#chapter-5-replication)
+    - [Single-Leader Replication](#single-leader-replication)
+    - [Multi-leader replication](#multi-leader-replication)
+    - [Leaderless replication](#leaderless-replication)
+- [Chapter 6: Partitioning](#chapter-6-partitioning)
+    - [](#)
+- [References](#references)
+
 ## Chapter 1: Reliable, Scalable, and Maintainable Applications
 
 ### Reliability
