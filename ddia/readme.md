@@ -328,8 +328,7 @@
       changes have been replicated.
     * Different Approaches
         * Last write wins (data loss) - often based on somewhat arbitrary unique ID(timestamp, long random number, UUID)
-          ,
-          pick the write with the highest ID as the winner and throw away the other writes
+          , pick the write with the highest ID as the winner and throw away the other writes
         * Higher numbered replica wins (data loss).
         * Concatenate values: Somehow merge the conflicting values being written
         * Preserve all values and let the user resolve.
@@ -349,6 +348,7 @@ sensible conflict resolution rules built in
   ordered sequence of characters)
 
 #### Multi-Leader Replication Topologies
+* A replication topology describes the communication paths along which writes are propagated from one node to another.
 * Common topologies include:
   * All-to-all - simplest 
   * Circular - simple version is unidirectional 
@@ -366,7 +366,7 @@ sensible conflict resolution rules built in
 * Amazon Dynamo led the way for leaderless replication. Other examples: Riak, Cassandra, Voldemort
 * Either the client directly sends writes to multiple replicas, or a coordinator node handles that on the behalf of
   client
-* Writing to the Database When a Node Is Down
+* **Writing to the Database When a Node Is Down**
     * In a leaderless configuration, failover does not exist. Clients send the writes to all replicas in parallel.
     * Read requests are also sent to several nodes in parallel. The client may get different responses. Version numbers
       are used to determine which value is newer.
@@ -374,14 +374,14 @@ sensible conflict resolution rules built in
         * **Read repair** - when a client detects a stale read, it writes the newer value back
         * **Anti-entropy process** - background process that searches for differences between replicas and corrects
           them. No guarantee of order or time until repair.
-* Quorums for reading and writing
+* **Quorums for reading and writing**
     * The minimum number of nodes or votes required for the read or write to be valid is called a quorum reads and
       writes.
     * If there are n nodes, r are required for reads, w are required for writes, then ``w + r > n``
     * Typically, n is an odd number(typically 3 or 5) and to set ``w = r = (n + 1)/2 (rounded up)``
     * Writes can tolerate ``n - w`` nodes being down; reads can tolerate ``n - r`` nodes down.
       If more than that are down, the operation returns an error
-* Limitations
+* **Limitations**
     * Sloppy quorums (next section): the w writes may end up on different nodes than the r reads, so there is no longer
       a guaranteed overlap.
     * Concurrent writes
@@ -391,12 +391,12 @@ sensible conflict resolution rules built in
       so will incorrectly have the newer value.
     * If a failed node A is restored from node B, anything stale on B is now stale on A, and both A and B can contribute
       toward a read quorum
-* Sloppy Quorums and Hinted Handoff
+* **Sloppy Quorums and Hinted Handoff**
     * Sloppy Quorum: writes and reads still require w and r successful responses, but those may include nodes that are
       not among the designated n "home" nodes for a value. Once the network interruption is fixed, any writes are sent
       to the appropriate "home" nodes **(hinted handoff)**.
     * This provides fault tolerance, but violates quorum properties, allowing stale reads
-* Concurrent Writes
+* **Concurrent Writes**
     * Concurrent writes can happen in multi-leader replication or leaderless. In leaderless replication they can also
       happen during read repair and hinted handoff.
     * **Last write wins (discarding concurrent writes)**: Biggest value of some “timestamp” with each write wins. Even
