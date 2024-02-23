@@ -83,7 +83,7 @@ against a long url. Moreover, when user click on the tiny url, he gets redirecte
  | Memory for cache                  | 19K URL * 3600 seconds * 24 hours * 500 bytes * 20%     | 170 GB   |
 
 
-## High-level  API design - API Endpoints
+## High-level API design
 We can have SOAP or REST APIs to expose the functionality of our service.
 * Shortening a URL
 * Redirecting a short URL

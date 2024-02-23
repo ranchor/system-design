@@ -29,7 +29,6 @@
 * Pros
     * Sequenced ids
     * IDs could be numeric
-    
 * Cons
     * Single point of Failure (SPF). Not scalable and highly available solution.
     * Multiple ticket servers can be set up, but this introduces new challenges such as data synchronization.
