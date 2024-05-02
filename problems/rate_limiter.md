@@ -1,11 +1,44 @@
+# Table of contents
+
+- [Problem Statement](#problem-statement)
+- [Requirements](#requirements)
+  - [Functional Requirements](#functional-requirements)
+  - [Non-Functional Requirements](#non-functional-requirements)
+- [Back of Envelope Estimations/Capacity Estimation & Constraints](#back-of-envelope-estimationscapacity-estimation--constraints)
+- [Throttling Types](#throttling-types)
+- [Where to put  the rate limiter ?](#where-to-put--the-rate-limiter-)
+- [High Level System Design and Algorithms](#high-level-system-design-and-algorithms)
+  - [High Level Design](#high-level-design)
+    - [HTTP Response Headers](#http-response-headers)
+  - [Algorithms for Rate Limiting](#algorithms-for-rate-limiting)
+    - [Token Bucket](#token-bucket)
+    - [Leaky Bucket](#leaky-bucket)
+    - [Fixed Window Counter](#fixed-window-counter)
+    - [Sliding(Rolling) Window Log](#slidingrolling-window-log)
+    - [Sliding(Rolling) Window Counter](#slidingrolling-window-counter)
+    - [Comparision of rate-limiting algorithms](#comparision-of-rate-limiting-algorithms)
+  - [Rate Limiting in Distributed Systems](#rate-limiting-in-distributed-systems)
+    - [All To All (also known as Broadcasting)](#all-to-all-also-known-as-broadcasting)
+    - [Distributed database at each node](#distributed-database-at-each-node)
+    - [Centralized database/cache](#centralized-databasecache)
+- [References](#references)
+
 ## Problem Statement
 An API rate limiter will throttle users based on the number of requests they are sending.
+Benefits of API Rate limiter
+* Prevent Brute Force Attacks
+* Prevent resource starvation caused by Denial of Service (DoS) attack
+* Reduce cost.
+* Prevent servers from being overloaded.
+
 
 ## Requirements
+
 ### Functional Requirements
 * To limit the number of requests a client can send to an API within a time window.
 * To make the limit of requests per window configurable.
 * To make sure that the client gets a message (error or notification) whenever the defined threshold is crossed within a single server or combination of servers.
+
 ### Non-Functional Requirements
 * **Availability**: Essentially, the rate limiter protects our system. Therefore, it should be highly available.
 * **Low latency**: Because all API requests pass through the rate limiter, it should work with a minimum latency without affecting the user experience.
@@ -14,14 +47,36 @@ An API rate limiter will throttle users based on the number of requests they are
 ## Back of Envelope Estimations/Capacity Estimation & Constraints
 
 ## Throttling Types
-* Hard Throttling – Number of API requests cannot exceed the throttle limit
-* Soft Throttling – Set the API request limit to exceed by some percentage. E.g, if the rate-limit = 100 messages/minute, and 10% exceed-limit, our rate limiter will allow up to 110 messages per minute
-* Dynamic Throttling – The number of requests can exceed the limit if the system has some free resources available.
+* **Hard Throttling** – Number of API requests cannot exceed the throttle limit
+* **Soft Throttling** – Set the API request limit to exceed by some percentage. E.g, if the rate-limit = 100 messages/minute, and 10% exceed-limit, our rate limiter will allow up to 110 messages per minute
+* **Elastic or Dynamic Throttling** – The number of requests can exceed the limit if the system has some free resources available.
 
-## High-level API design 
+## Where to put  the rate limiter ?
+* **On the client side**: Hostile actors can quickly falsify client requests. So the client is an unstable venue to impose rate restrictions. Furthermore, we may not have complete control over client implementation
+* **On the server side:** The rate limiter is placed on the server-side. In this approach, a server receives a request that is passed through the rate limiter that resides on the server.
+![](../resources/problems/rate_limiter/server_side.png)
+* **As middleware**: In this strategy, the rate limiter acts as middleware, throttling requests to API servers. Eg: API Gateway
+![](../resources/problems/rate_limiter/middleware.png)
 
-## Database Design
+
 ## High Level System Design and Algorithms
+
+### High Level Design
+![](../resources/problems/rate_limiter/hld.png)
+![](../resources/problems/rate_limiter/hld_1.png)
+* Rule database: This is the database, consisting of rules defined by the service owner. Each rule specifies the number of requests allowed for a particular client per unit of time.
+* Rules retriever: Background process that periodically checks for any modifications to the rules in the database. The rule cache is updated if there are any modifications made to the existing rules.
+* Throttle rules cache: The cache consists of rules retrieved from the rule database. T
+* Decision-maker: Responsible for making decisions against the rules in the cache. Works based on rate limited algorithm
+
+##### **HTTP Response Headers**
+Rate limiter returns the following HTTP headers to clients:
+```
+X-Ratelimit-Remaining: The remaining number of allowed requests within the window.
+X-Ratelimit-Limit: It indicates how many calls the client can make per time window.
+X-Ratelimit-Retry-After: The number of seconds to wait until you can make a request again without being throttled.
+```
+
 ### Algorithms for Rate Limiting
 #### Token Bucket
 ![](../resources/problems/rate_limiter/token_bucket_1.png)
@@ -64,28 +119,108 @@ An API rate limiter will throttle users based on the number of requests they are
     * There are two parameters in the algorithm. Determining an optimal bucket size and outflow rate is a challenge.
 
 #### Fixed Window Counter
-* This algorithm divides the time into fixed intervals called windows and assigns a counter to each window. 
-* When a specific window receives a request, the counter is incremented by one. 
-* Once the counter reaches its limit, new requests are discarded in that window.
+![](../resources/problems/rate_limiter/fixed_windows_1.png)
+* Steps
+    * This algorithm divides the time into fixed intervals called **windows** and assigns a counter to each window. 
+    * When a specific window receives a request, the counter is incremented by one. 
+    * Once the counter reaches its limit, new requests are discarded in that window.
 * Essential Parameters
-
+    * Window size(W): Represent the size of the time window. 
+    * Rate limit(R): number of requests allowed per time window.
+    * Requests count(N):number of incoming requests per window.
 * Pros
     * Memory efficient due to constraints on the rate of requests.
     * Easy to understand.
     * Resetting available quota at the end of a unit time window fits certain use cases.
 * Cons
     * Spike in traffic at the edges of a window could cause more requests than the allowed quota to go through.
+![](../resources/problems/rate_limiter/fixed_windows_2.png)
+
+
 #### Sliding(Rolling) Window Log
+![](../resources/problems/rate_limiter/sw_log.png)
+* Steps
+    *  Track of request timestamps. Timestamp data is usually kept in cache, such as sorted sets of Redis.
+    * When a new request comes in, remove all the outdated timestamps. Outdated timestamps are defined as those older than the start of the current time window.
+    * Add timestamp of the new request to the log.
+    * If the log size is the same or lower than the allowed count, a request is accepted. Otherwise, it is rejected.
 * Essential Parameters
 * Pros:
-    * Rate limiting implemented by this algorithm is very accurate. In any rolling window, requests will not exceed the rate limit.
+    * Doesn’t suffer from the boundary conditions of fixed windows.
 * Cons:
-    * The algorithm consumes a lot of memory because even if a request is rejected, its timestamp might still be stored in memory.
-#### Sliding(Rolling) Window Counters
+    * Consumes a lot of memory because even if a request is rejected, its timestamp might still be stored in memory.
+
+
+#### Sliding(Rolling) Window Counter
+![](../resources/problems/rate_limiter/sw_counter_1.png)
+* Steps
+    * Doesn't limit the requests based on fixed time units
+    * Used both the fixed window counter and sliding window log algorithms to make the flow of requests more smooth
+
+![](../resources/problems/rate_limiter/sw_counter_2.png)
+
+``Rp`` is the number of requests in the previous window, which is 88. ``Rc`` is the number of requests in the current window, which is 12 ``time frame`` is 60 seconds in our case, and ``overlap time`` is 15 seconds.
+
+```
+
+    limit = 100 requests/hour
+
+    rate = ( 88 * ((time interval between 1:15 and 02:00) / rolling window size) ) + 12
+    = 88 * ((60 - 15)/60) + 12
+    = 88 * 0.75 + 12
+    = 78
+
+    rate < 100
+    hence, we will accept this request.
+```
+
+* Essential Parameters
+* Pros:
+    * space efficient due to limited states
+    * Sooths out the bursts of requests and processes them with an approximate average rate based on the previous window.
+* Cons:
+    * Assumes that the number of requests in the previous window is evenly distributed, which may not always be possible.
+
+#### Comparision of rate-limiting algorithms
+![](../resources/problems/rate_limiter/comparsion.png)
+
 
 ### Rate Limiting in Distributed Systems
+#### All To All (also known as Broadcasting)
+In the mode of broadcasting, each of the nodes sends messages to every other node. The disadvantage of broadcasting is that it results in redundant messaging and heavy usage of network bandwidth.
+* Pros
+    * Ease of implementation.
+* Cons
+    * Not scalable with the number of hosts
+
+#### Gossip Communication
+The gossip protocol is based on the same methodology as epidemics spread. Typically, nodes talk to peer nodes (sister nodes) in the network and the information spreads to all the nodes in the network.
+* Pros
+    * Ease of implementation.
+* Cons
+    * Not scalable with the number of hosts
+
+
+#### Distributed database at each node
+* Enforce the limit is to set up **sticky** sessions in your load balancer so that each consumer gets sent to exactly one node.
+* Pros:
+    * Simple
+* Cons:
+    *  include a lack of fault tolerance and scaling problems when nodes get overloaded.
+
+#### Centralized database/cache
+* Use a centralized data store such as Redis or Cassandra, to store the counts for each window and consumer
+* Pros
+    * More flexible for load-balancing rule
+* Cons
+    * increased latency making requests to the data store,
+    * race conditions for get and set operations. We need some locking around the key operations
+
 ## References
 * https://www.educative.io/courses/grokking-modern-system-design-interview-for-engineers-managers/design-of-a-rate-limiter
+* https://newsletter.systemdesign.one/p/rate-limiter
 * https://github.com/Salah856/System-Design/blob/main/Design%20Rate%20Limiter.md
-* https://cloudxlab.com/blog/system-design-how-to-design-a-rate-limiter/
+* https://systemsdesign.cloud/SystemDesign/RateLimiter
 * https://aaronice.gitbook.io/system-design/system-design-problems/designing-an-api-rate-limiter
+* https://www.geeksforgeeks.org/how-to-design-a-rate-limiter-api-learn-system-design/
+* https://ravisystemdesign.substack.com/p/interview-preparation-design-a-distributed

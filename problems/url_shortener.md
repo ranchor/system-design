@@ -1,6 +1,5 @@
 
 # Table of contents
-
 - [Summary](#summary)
 - [Problem Statement](#problem-statement)
 - [Requirements](#requirements)
