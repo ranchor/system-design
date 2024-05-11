@@ -30,3 +30,9 @@
 ## Database Design
 ## High Level System Design and Algorithm
 ## References
+* https://leetcode.com/discuss/interview-question/1490932/Instagram-System-Design, https://drive.google.com/file/d/1VRwvbijCV_oM4fKljdcmLb0AJv9S38y-/view
+* https://read.learnyard.com/hld-instagram-system-design/
+* https://github.com/codekarle/system-design/blob/master/system-design-prep-material/architecture-diagrams/Facebook%20System%20Design.png
+* https://nikhilgupta1.medium.com/instagram-system-design-f62772649f90
+* https://www.linkedin.com/posts/rocky-bhatia-a4801010_instagram-system-design-designing-a-system-activity-7132334932504289280-U5hQ/
+* https://www.youtube.com/watch?v=YoS5cp0cirM
