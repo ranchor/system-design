@@ -365,13 +365,13 @@ The gossip protocol is based on the same methodology as epidemics spread. Typica
 #### Coordination Service
 Another commonly used protocol is using a coordination service. The coordination service is a third-party service that helps elect one of the nodes as the leader. Each of the hosts talks to the leader and syncs information with the host. Typically, Paxos, and Raft are used to implement the Coordination Protocol. Zookeeper is a widely adopted service used to implement a Coordination Service
 * **Pros**
-Scalable design as the hosts can scale independent of the coordination service.
+   * Scalable design as the hosts can scale independent of the coordination service.
 * **Cons**
-* Complexity of implementation.
-* Complexity in case of failure of the leader.
+   * Complexity of implementation.
+   * Complexity in case of failure of the leader.
 
 #### Random Leader Selection
-nstead of relying on a central coordination service we can go with a random algorithm to pick a leader. An example could be using the MAC or IP address and using the host with the largest address. Ideally, this should lead to a single leader being elected, and all the hosts talk through this leader. Even if there are multiple leaders that are elected, this should not result in any issues since the information will eventually converge to the right state of the cluster.
+Instead of relying on a central coordination service we can go with a random algorithm to pick a leader. An example could be using the MAC or IP address and using the host with the largest address. Ideally, this should lead to a single leader being elected, and all the hosts talk through this leader. Even if there are multiple leaders that are elected, this should not result in any issues since the information will eventually converge to the right state of the cluster.
 
 ![](../resources/problems/rate_limiter/communication.png)
 
