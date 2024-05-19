@@ -2,13 +2,13 @@
 Design a job/task scheduler that runs jobs/task at a scheduled interval
 ## Requirements
 ### Functional Requirements
-* Submit tasks: The system should allow the users to submit their tasks for execution.
-* Allocate resources: The system should be able to allocate the required resources to each task.
-* Remove tasks: The system should allow the users to cancel the submitted tasks.
-* Monitor task execution: The task execution should be adequately monitored and rescheduled if the task fails to execute.
-* Release resources: After successfully executing a task, the system should take back the resources assigned to the task.
-* Show task status: The system should show the users the current status of the task.
-* Task can also have priority.  Task with higher priority should be executed first than lower priority
+* **Submit tasks**: The system should allow the users to submit their tasks for execution.
+* **Allocate resources**: The system should be able to allocate the required resources to each task.
+* **Remove tasks:** The system should allow the users to cancel the submitted tasks.
+* **Monitor task execution:** The task execution should be adequately monitored and rescheduled if the task fails to execute.
+* **Release resources**: After successfully executing a task, the system should take back the resources assigned to the task.
+* **Show task status**: The system should show the users the current status of the task.
+* **Task can also have priority**.  Task with higher priority should be executed first than lower priority
 ### Non-Functional Requirements
 * Availability:  system should always be available for users to add/view the task
 * Scalability: Thousands or even millions of tasks can be scheduled and run per day

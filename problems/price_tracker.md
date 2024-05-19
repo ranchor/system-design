@@ -14,7 +14,7 @@ Design a price drop tracker system that monitors the prices of products from ama
 ## High-level API design 
 ## Database Design
 ## High Level System Design and Algorithm
-![](../resources/price_tracker/price_alert.png)
+![](../resources/problems/price_tracker/price_alert.png)
 ## References
 * https://systemdesignfightclub.com/price-drop-tracker/
 * https://blog.crushingtecheducation.com/p/design-a-price-drop-tracker-like
