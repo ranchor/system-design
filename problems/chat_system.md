@@ -179,6 +179,7 @@ It is a persistent abd bidirectional communication protocol that enables real-ti
    - Hashing: U3 sends a hash of the content to check for duplicates.
    - Multiple Hashes: Multiple hashing algorithms are used to reduce collision risk.
    - Content Upload: If the hash already exists, content is not re-uploaded; existing ID is sent to U2.
+
 #### Message synchronization across multiple devices
 - When User A logs in to the chat app with her phone, it establishes a WebSocket connection with `Chat server 1`. 
 - Similarly, there is a connection between the laptop and `Chat server 1`.
@@ -187,6 +188,36 @@ It is a persistent abd bidirectional communication protocol that enables real-ti
     - The recipient ID is equal to the currently logged-in user ID.
     - Message ID in the key-value store is larger than cur_max_message_id.
 
+
+### Strategies for Designing Unique and Sortable Message IDs
+
+1. **Timestamp + Sequence Number**:
+   - Combine a timestamp with a sequence number.
+   - Generate a sequence number for each message within the same timestamp.
+   - Example Format: `YYYYMMDDHHMMSS-SEQ`
+
+2. **Millisecond Precision Timestamp**:
+   - Use millisecond precision timestamp to reduce the likelihood of collisions.
+   - Append a unique identifier to ensure uniqueness.
+   - Example Format: `YYYYMMDDHHMMSSmmm-UUID`
+
+3. **UUID with Timestamp Prefix**:
+   - Prepend a timestamp prefix to a universally unique identifier (UUID).
+   - Ensure uniqueness while maintaining sortability.
+   - Example Format: `YYYYMMDDHHMMSS-UUID`
+
+4. **Distributed Sequence Generator**:
+   - Implement a distributed sequence generator to assign unique sequence numbers.
+   - Combine with a timestamp for ordering.
+   - Example Format: `SEQ-TIMESTAMP`
+
+5. **Lexicographically Sortable IDs**:
+   - Use lexicographically sortable IDs like Twitter Snowflake or Instagram ID.
+   - Ensure both uniqueness and sortability.
+   - Example Format: `SNOWFLAKE_ID`
+
+
+## Open Questions
 
 ## References
 * Alex Wu - Vol1 - [Chapter 12](https://bytebytego.com/courses/system-design-interview/design-a-chat-system)

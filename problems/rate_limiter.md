@@ -62,6 +62,8 @@ Benefits of API Rate limiter
 ## High Level System Design and Algorithms
 
 ### High Level Design
+![](../resources/problems/rate_limiter/rate_limiter_on_host.png)
+
 ![](../resources/problems/rate_limiter/hld.png)
 ![](../resources/problems/rate_limiter/hld_1.png)
 * **Rule database:** This is the database, consisting of rules defined by the service owner. Each rule specifies the number of requests allowed for a particular client per unit of time.
@@ -331,7 +333,7 @@ public class RateLimiter {
 
 
 ### Rate Limiting in Distributed Systems
-We can use various Communication Algorithms to implement throttling in Distributed Systems which are as follows 
+We can use various message broadcasting Algorithms to implement throttling in Distributed Systems which are as follows 
 #### All To All (also known as Broadcasting)
 In the mode of broadcasting, each of the nodes sends messages to every other node. The disadvantage of broadcasting is that it results in redundant messaging and heavy usage of network bandwidth.
 * **Pros**
@@ -375,6 +377,9 @@ Instead of relying on a central coordination service we can go with a random alg
 
 ![](../resources/problems/rate_limiter/communication.png)
 
+#### Communication Protocols
+TCP vs UDP
+
 ## References
 * Alex Xu-Vol1 - https://github.com/Salah856/System-Design/blob/main/Design%20Rate%20Limiter.md
 * https://www.educative.io/courses/grokking-modern-system-design-interview-for-engineers-managers/design-of-a-rate-limiter
@@ -382,3 +387,4 @@ Instead of relying on a central coordination service we can go with a random alg
 * https://systemsdesign.cloud/SystemDesign/RateLimiter
 * https://aaronice.gitbook.io/system-design/system-design-problems/designing-an-api-rate-limiter
 * https://ravisystemdesign.substack.com/p/interview-preparation-design-a-distributed
+* https://www.youtube.com/watch?v=FU4WlwfS3G0&t=397s
