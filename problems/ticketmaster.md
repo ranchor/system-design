@@ -68,6 +68,9 @@ Design a distributed system for an online ticket booking platform like Ticketmas
 - `booking_date`
 - `status` (completed, pending, cancelled)
 ## High Level System Design and Algorithm
+
+![](../resources/problems/ticketmaster/ticketmaster.png)
+
 ### View Events
 #### Caching on View Events
 

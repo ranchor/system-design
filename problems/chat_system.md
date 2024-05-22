@@ -218,7 +218,7 @@ It is a persistent abd bidirectional communication protocol that enables real-ti
 
 
 ## Open Questions
-
+* Practice one : https://app.excalidraw.com/import?excalidraw=0hgldWbhbSBs,pqmR9hnrv2oeyJeoxH9Uqg
 ## References
 * Alex Wu - Vol1 - [Chapter 12](https://bytebytego.com/courses/system-design-interview/design-a-chat-system)
 * https://medium.com/@m.romaniiuk/system-design-chat-application-1d6fbf21b372

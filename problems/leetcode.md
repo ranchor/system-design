@@ -91,6 +91,10 @@ Design an online coding contest platform that allows users to participate in cod
   - `created_at (timestamp)`: User creation timestamp.
   - `updated_at (timestamp)`: Last update timestamp.
 
+- Code Storage(S3): Use to store user-submitted code and test cases.
+- Problem Storage(S3): Use to store admin submitted problem text and corresponding relevant test casess
+- Results Storage (S3): Store all the results related to specific submissions for each problem.
+
 ## High Level System Design and Algorithm
 ![](../resources/problems/leetcode/leetcode_updated.png)
 

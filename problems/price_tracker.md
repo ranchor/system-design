@@ -6,8 +6,8 @@ Design a price drop tracker system that monitors the prices of products from ama
 ### Functional Requirements
 * User Management
 * Product Catalog
-*  Price Monitoring
-* 
+* Price Monitoring
+
 ### Non-Functional Requirements
 
 ## Back of Envelope Estimations/Capacity Estimation & Constraints
@@ -15,6 +15,7 @@ Design a price drop tracker system that monitors the prices of products from ama
 ## Database Design
 ## High Level System Design and Algorithm
 ![](../resources/problems/price_tracker/price_alert.png)
+
 ## References
 * https://systemdesignfightclub.com/price-drop-tracker/
 * https://blog.crushingtecheducation.com/p/design-a-price-drop-tracker-like
