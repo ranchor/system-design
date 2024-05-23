@@ -7,5 +7,6 @@
 ## Back of Envelope Estimations/Capacity Estimation & Constraints
 ## High-level API design 
 ## Database Design
-## High Level System Design and Algorithm
+## High Level System Design
+## Deep Dive
 ## References
