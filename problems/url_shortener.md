@@ -22,8 +22,8 @@
 - [Reference](#reference)
 
 ## Summary
-![overview](../resources/problems/url_shorten_overview.png)
-![summary](../resources/problems/url_shorten_detail.png)
+![overview](../resources/problems/url_shorten/url_shorten_overview.png)
+![summary](../resources/problems/url_shorten/url_shorten_detail.png)
 
 ## Problem Statement
 A URL shortener service creates a **short url/aliases/tiny** url 
@@ -157,7 +157,7 @@ Return longURL for HTTP redirection
 
 ## High Level System Design and Algorithm
 ### URL Redirecting
-![](../resources/problems/url_shorten_redirection.png)
+![](../resources/problems/url_shorten/url_shorten_redirection.png)
 * **301 redirect**
   * A 301 redirect shows that the requested URL is “permanently” moved to the long URL
   * Since it is permanently redirected, the browser caches the response, and subsequent requests for the same URL 
@@ -177,7 +177,7 @@ Return longURL for HTTP redirection
 ### URL Shortening Length
 We need to pick a reasonable, fixed length for the short URLs that the service will create.
 
-![](../resources/problems/url_shorten_base_types.png)
+![](../resources/problems/url_shorten/url_shorten_base_types.png)
 
 #### Base64 Encoding:
 * Encode the long URL using Base64 encoding, which converts binary data into ASCII characters.
@@ -199,7 +199,7 @@ When ``n = 7``, ``10 ^ n = ~10 million`` urls only which is very less.
 When ``n = 7``, ``62 ^ n = ~3.5 trillion``, ``3.5 trillion`` is more than enough to hold 365 billion URLs, so the length 
 of hashValue is 7.
 
-![](../resources/problems/url_shorten_hash_length.png)
+![](../resources/problems/url_shorten/url_shorten_hash_length.png)
 
 ### URL Shortening Design Options
 For shortening an url there are a couple of options which are as follows:
@@ -262,14 +262,14 @@ while (true) {
   * This isn’t acceptable; we need a unique short URL for every long URL.
   * We can solve this using following way:
   
-   ![](../resources/problems/url_shorten_dupliation.png)
+   ![](../resources/problems/url_shorten/url_shorten_dupliation.png)
 * **Multiple Shortening Requests For The Same URL**
   * If a single user attempts to shorten the same long URL multiple times or multiple users make shortening 
     requests for the same long URL then chances of getting same short url.
   * To avoid this problem we can append some unique predefined string like user’s IP address or user id. For user id 
     user would require login which we need to avoid.
     
-   ![](../resources/problems/url_shorten_multiple_url.png)
+   ![](../resources/problems/url_shorten/url_shorten_multiple_url.png)
 
 * **URL-Encoded URL Shortening Request**
   * User enters a URL-encoded URL such as this one:
@@ -278,7 +278,7 @@ while (true) {
   ``https://medium.com/double-pointer/top-5-videos-for-web-crawler-system-design-interview-75b7ac9c04ce``
   * However, the format of two is different. The first one is URL-encoded format while the second one is UTF-8 format.
   * To solve this issue, we can check url format and make sure all urls are in same format.
-    ![](../resources/problems/url_shorten_multiple_utf.png)
+    ![](../resources/problems/url_shorten/url_shorten_multiple_utf.png)
 
 #### [Recommended] Option4: Counter/Key Generation Service + Base58 Conversion
 * In this approach we are not encoding the URl, we will encode an unique id generated number which will in turn 
@@ -288,7 +288,7 @@ guarantee that no duplicates or collision will occur.
 * Why Base58 conversion vs base62 or base 64 conversion ?
   * To avoid  characters of the omitted ones: '0', 'O', 'I', 'l' and '/' pr '\'
 * Create a new database row with the ID, shortURL, and longURL.
-  ![](../resources/problems/url_shorten_kgs.png)
+  ![](../resources/problems/url_shorten/url_shorten_kgs.png)
 ``Counter (0–3.5 trillion) → base64encode() → short_url``
 ##### How the keys will be generated ?
 * Standalone Key Generation/Counter Service (KGS)
