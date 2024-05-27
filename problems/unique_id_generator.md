@@ -46,10 +46,10 @@ Response:
 ## High Level Design
 ### Option1: [Centralized] Ticket Server - Using a Database
 * Use a centralized auto-increment feature in a single central database server called the Ticket Server. Instead of increasing the next ID by 1, we increase it by k, where k is the number of database servers in use.
-* Pros
+* **Pros**
     * Sequenced ids
     * IDs could be numeric
-* Cons
+* **Cons**
     * Single point of Failure (SPF). Not scalable and highly available solution.
     * Multiple ticket servers can be set up, but this introduces new challenges such as data synchronization.
     * No guarantee of sorting over time in multiple servers.
@@ -77,7 +77,7 @@ Response:
 * UUID consists of 32 hexadecimal (base-16) digits, displayed in five groups separated by hyphens
 * Example of UUID: ``09c93e62-50b4-468d-bf8a-c07e1040bfb2``
 * UUIDs have a very low probability of collision, making them suitable for generating unique IDs.
-* * **Implementation**:
+* **Implementation**:
   * Each server runs a UUID generation library.
 * **Pros**
     * Generating UUID is simple
@@ -173,10 +173,12 @@ Response:
 - **In-process**: Indicates if the ID generation can be done within the same process without external dependencies.
 - **SPOF (Single Point of Failure)**: Indicates if the approach has a single point of failure that could bring down the ID generation system.
 
-
+![](../resources/problems/unique_id/comparison.gif)
 
 
 ## Reference
 * https://www.educative.io/courses/grokking-modern-system-design-interview-for-engineers-managers/design-of-a-unique-id-generator
 * https://towardsdatascience.com/ace-the-system-design-interview-distributed-id-generator-c65c6b568027
 * https://medium.com/double-pointer/system-design-interview-scalable-unique-id-generator-twitter-snowflake-or-a-similar-service-18af22d74343
+* Alex-Xu - Vol1 - Chapter 7
+* 
