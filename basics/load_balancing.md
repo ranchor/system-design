@@ -2,7 +2,21 @@
 Load balancing is a technique used to distribute network traffic across multiple servers or resources to optimize resource utilization, 
 maximize throughput, minimize response time, and avoid overloading any single resource. Here's a brief summary and notes on load balancing:
 
-## Types of Load Balancers
+
+## Types of Load Balancers 
+### Layer 4 Load Balancer (Network Load Balancing-NLB) 
+* Operates at the transport layer (Layer 4), directing traffic based on IP addresses and port numbers.
+* Use Cases: Suitable for TCP/UDP-based protocols such as DNS, FTP, and SMTP.
+* Pros: Offers high throughput and low latency, ideal for high-speed data transmission.
+* Cons: Lacks visibility into application-layer data, limiting advanced routing capabilities.
+
+### Layer 7 Load Balancer
+* Operates at the application layer (Layer 7), capable of inspecting HTTP/HTTPS headers, URLs, cookies, etc.
+* Use Cases: Ideal for HTTP/HTTPS-based applications requiring content-based routing and SSL termination.
+* Pros: Advanced routing capabilities, content-based routing, SSL offloading.
+* Cons: Higher processing overhead, increased latency.
+
+## Implementation of load balancers
 1. **Software Load Balancers:**
    - Examples: NGINX, HAProxy.
    - Run as software on general-purpose hardware or virtual machines.
@@ -20,20 +34,6 @@ maximize throughput, minimize response time, and avoid overloading any single re
    - Provided by cloud service providers to distribute traffic across cloud resources.
    - Offers scalability, elasticity, and seamless integration with cloud environments.
    - Supports auto-scaling and geographic load balancing for global deployments.
-
-## Layer 4 vs. Layer 7 Load Balancers
-
-### Layer 4 Load Balancer (Network Load Balancing-NLB) 
-* Operates at the transport layer (Layer 4), directing traffic based on IP addresses and port numbers.
-* Use Cases: Suitable for TCP/UDP-based protocols such as DNS, FTP, and SMTP.
-* Pros: Offers high throughput and low latency, ideal for high-speed data transmission.
-* Cons: Lacks visibility into application-layer data, limiting advanced routing capabilities.
-
-### Layer 7 Load Balancer
-* Operates at the application layer (Layer 7), capable of inspecting HTTP/HTTPS headers, URLs, cookies, etc.
-* Use Cases: Ideal for HTTP/HTTPS-based applications requiring content-based routing and SSL termination.
-* Pros: Advanced routing capabilities, content-based routing, SSL offloading.
-* Cons: Higher processing overhead, increased latency.
 
 ## Common Load-balancing Algorithms
 ![](../resources/basics/load_balancing/algo.jpg)
@@ -90,6 +90,7 @@ maximize throughput, minimize response time, and avoid overloading any single re
 
 ## References
 * https://blog.bytebytego.com/p/ep47-common-load-balancing-algorithms 
+* https://www.educative.io/courses/grokking-modern-system-design-interview-for-engineers-managers/global-and-local-load-balancing
 * https://medium.com/@maheshsaini.sec/system-design-load-balancing-algorithms-in-nutshell-9363547141d8
 * https://docs.google.com/presentation/d/1Q227M-Bnk5spHr8VUG5Atq7AROiMd6oVCnvk1fc1RfY/edit#slide=id.g12837422678_0_61
 * Understand Load-balancing Algorithms
