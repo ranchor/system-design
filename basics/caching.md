@@ -1,20 +1,3 @@
-# Table of contents
-- [Introduction](#introduction)
-- [Considerations for using Cache](#considerations-for-using-cache)
-- [Types of Cache](#types-of-cache)
-    - [Application server cache](#application-server-cache)
-    - [Distributed cache](#distributed-cache)
-    - [Global cache](#global-cache)
-    - [Content Delivery (or Distribution) network (CDN)](#content-delivery-or-distribution-network-cdn)
-- [Cache Update Strategies/Cache Invalidation](#cache-update-strategiescache-invalidation)
-    - [Cache-Aside Cache](#cache-aside-cache)
-    - [Read-Through Cache](#read-through-cache)
-    - [Write-Through cache](#write-through-cache)
-    - [Write-Around cache](#write-around-cache)
-    - [Write-Back (Write-Behind) cache](#write-back-write-behind-cache)
-- [Cache Eviction Policies](#cache-eviction-policies)
-- [References](#references)
-
 # Introduction
 * A cache is a temporary storage area that stores the result of expensive responses or frequently accessed data in 
 memory so that subsequent requests are served more quickly.

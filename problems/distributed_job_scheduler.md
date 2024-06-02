@@ -10,12 +10,12 @@ Design a job/task scheduler that runs jobs/task at a scheduled interval
 * **Show task status**: The system should show the users the current status of the task.
 * **Task can also have priority**.  Task with higher priority should be executed first than lower priority
 ### Non-Functional Requirements
-* Availability:  system should always be available for users to add/view the task
-* Scalability: Thousands or even millions of tasks can be scheduled and run per day
-* Durability: Tasks must not get lost -> we need to persist tasks
-* Reliability: Tasks must not be executed much later than expected or dropped -> we need a fault-tolerant system
+* **Availability**:  system should always be available for users to add/view the task
+* **Scalability**: Thousands or even millions of tasks can be scheduled and run per day
+* **Durability**: Tasks must not get lost -> we need to persist tasks
+* **Reliability**: Tasks must not be executed much later than expected or dropped -> we need a fault-tolerant system
 * Jobs must not be executed multiple times (or such occurences should be kept to a minimum)
-* Bounded waiting time: This is how long a task needs to wait before starting execution. We must not execute tasks much later than expected. Users shouldn’t be kept on waiting for an infinite time. 
+* **Bounded waiting time**: This is how long a task needs to wait before starting execution. We must not execute tasks much later than expected. Users shouldn’t be kept on waiting for an infinite time. 
 
 
 ## Back of Envelope Estimations/Capacity Estimation & Constraints
@@ -32,23 +32,22 @@ Design a job/task scheduler that runs jobs/task at a scheduled interval
 
 ## Database Design
 Table: JOB
-
-+------------------------------+--------+
-|          Attribute           |  Type  |
-+------------------------------+--------+
+| Attribute                    | Type   |
+|------------------------------|--------|
 | user_id (partition key)      | uuid   |
-| task_id (sort key)            | uuid   |
+| task_id (sort key)           | uuid   |
 | actual_job_execution_time    | date   |
-| task_status                   | string |
-| task_type                     | string |
-| task_interval                 | int    |
+| task_status                  | string |
+| task_type                    | string |
+| task_interval                | int    |
 | result_location              | string |
 | current_retries              | int    |
 | max_retries                  | int    |
 | scheduled_job_execution_time | date   |
 | execution_status             | string |
-+------------------------------+--------+
-## High Level System Design and Algorithm
+## High Level System Design
+## Deep Dive
 ## References
+* https://www.educative.io/courses/grokking-modern-system-design-interview-for-engineers-managers/design-of-a-distributed-task-scheduler
 * https://www.linkedin.com/pulse/system-design-distributed-job-scheduler-keep-simple-stupid-ismail/
 * https://towardsdatascience.com/ace-the-system-design-interview-job-scheduling-system-b25693817950

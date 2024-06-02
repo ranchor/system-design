@@ -111,15 +111,15 @@ We can,however, build 2D indexes and there are different approaches to that:
 - **Boundary Issues**: Handling edge cases at cell boundaries can be tricky.
 
 ### GeoHash
-#### Description
 * Geohashing divides the world into a grid of cells, each represented by a unique string (geohash). Nearby locations have similar prefixes.
 * Each two bits correspond to a single quadrant:
 ![](../resources/problems/proximity_service/geohash-example.png)
 * It supports 12 levels of precision, but we only need up to 6 levels for our use-case:
 ![](../resources/problems/proximity_service/geohash-precision.png)
-* Steps:
-    * Compute User's complete geohash from lat/lon
-    * Decide how many characters to match depending on how close/far you want
+* **Workflow Steps**:
+    * Compute User's complete geohash from lat/long
+    * Based on user's location and radius info, we can find the geohash length that matches the search.
+    * calculates neighboring geohashes and adds them to the list. list looks likes as follows: ``list_of_geohases=[user_geohash, neig1_geohash, neig2_geohash, neig3_geohash]``
     * Execute following SQL query to query poi with D radius
     ![](../resources/problems/proximity_service/geohash-user.png)
     ```
@@ -128,8 +128,84 @@ We can,however, build 2D indexes and there are different approaches to that:
     AND (latitude BETWEEN {:user_lat} - D AND {:user_lat} + D) AND
         (longitude BETWEEN {:user_long} - D AND {:user_long} + D);
     ```
+* Minimal GeoHash length can be determined based on the desired radius of the search. Below table shows corresponding relationship:
+| **Radius(KM)**    | **GeoHash length** |
+|-------------------|--------------------|
+| 0.5km(0.31 miles) | 6                  |
+| 1km(0.62 miles)   | 6                  |
+| 2km(1.24 miles)   | 5                  |
+| 5km(3.1 miles)    | 4                  |
+| 20km(12.42 miles) | 4                  |
+
 * Geohashes enable us to quickly locate neighboring regions based on a substring of the geohash:
 ![](../resources/problems/proximity_service/geohash-substrint.png)
+* Implementation Example
+```python
+import geohash2
+import math
+
+# Sample data: List of businesses with their latitudes and longitudes
+businesses = [
+    {"name": "Business A", "latitude": 37.7749, "longitude": -122.4194},
+    {"name": "Business B", "latitude": 37.8044, "longitude": -122.2712},
+    {"name": "Business C", "latitude": 37.6879, "longitude": -122.4702},
+    {"name": "Business D", "latitude": 37.7833, "longitude": -122.4167},
+]
+
+# Encode business locations into geohashes
+for business in businesses:
+    business["geohash"] = geohash2.encode(business["latitude"], business["longitude"], precision=6)
+
+# Function to determine geohash precision based on radius (in kilometers)
+def get_geohash_precision(radius_km):
+    if radius_km <= 0.61:
+        return 6
+    elif radius_km <= 2.4:
+        return 5
+    elif radius_km <= 20:
+        return 4
+    elif radius_km <= 78:
+        return 3
+    elif radius_km <= 630:
+        return 2
+    else:
+        return 1
+
+# Function to find nearby businesses
+def find_nearby_businesses(user_lat, user_lon, radius_km):
+    precision = get_geohash_precision(radius_km)
+    user_geohash = geohash2.encode(user_lat, user_lon, precision)
+    neighbors = geohash2.neighbors(user_geohash)
+    nearby_geohashes = [user_geohash] + neighbors
+    
+    nearby_businesses = []
+    for business in businesses:
+        if business["geohash"][:precision] in nearby_geohashes:
+            distance = haversine_distance(user_lat, user_lon, business["latitude"], business["longitude"])
+            if distance <= radius_km:
+                nearby_businesses.append(business)
+    
+    return nearby_businesses
+
+# Haversine distance function to calculate the distance between two points on the Earth's surface
+def haversine_distance(lat1, lon1, lat2, lon2):
+    R = 6371  # Radius of the Earth in kilometers
+    d_lat = math.radians(lat2 - lat1)
+    d_lon = math.radians(lon2 - lon1)
+    a = math.sin(d_lat / 2) ** 2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(d_lon / 2) ** 2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    return R * c
+
+# Example usage
+user_latitude = 37.7749
+user_longitude = -122.4194
+search_radius_km = 5
+
+nearby_businesses = find_nearby_businesses(user_latitude, user_longitude, search_radius_km)
+for business in nearby_businesses:
+    print(f"Found {business['name']} at ({business['latitude']}, {business['longitude']}) with geohash {business['geohash']}")
+
+```
 #### Pros
 - **Efficiency**: Reduces search space by narrowing down to relevant geohash cells.
 - **Indexing**: Can be used with standard database indexes for quick lookups.
@@ -143,7 +219,6 @@ We can,however, build 2D indexes and there are different approaches to that:
 ![](../resources/problems/proximity_service/boundary-issue-geohash.png)
 
 ### Quad Tree
-#### Description
 ![](../resources/problems/proximity_service/quadtree-example.png)
 * Quad trees recursively divide the 2D space into four quadrants or regions, with each node having four children.
 * This is an in-memory solution which can't easily be implemented in a database.

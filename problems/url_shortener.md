@@ -1,26 +1,3 @@
-
-# Table of contents
-- [Summary](#summary)
-- [Problem Statement](#problem-statement)
-- [Requirements](#requirements)
-- [Back of Envelope Estimations/Capacity Estimation & Constraints](#back-of-envelope-estimationscapacity-estimation--constraints)
-- [High-level design - API Endpoints](#high-level-design---api-endpoints)
-    - [Write Request — Shorten URL](#write-request--shorten-url)
-    - [Delete Short Url Request](#delete-short-url-request)
-    - [Read Request — Redirect Short URL](#read-request--redirect-short-url)
-- [Database Design](#database-design)
-- [Basic System Design and Algorithm](#basic-system-design-and-algorithm)
-    - [URL Redirecting](#url-redirecting)
-    - [URL Shortening Length](#url-shortening-length)
-    - [URL Shortening Options](#url-shortening-options)
-- [Data Partitioning and Replication](#data-partitioning-and-replication)
-- [Cache](#cache)
-- [Load Balancer (LB)](#load-balancer-lb)
-- [DB Sweeping](#db-sweeping)
-- [Telemetry](#telemetry)
-- [Security and Permissions](#security-and-permissions)
-- [Reference](#reference)
-
 ## Summary
 ![overview](../resources/problems/url_shorten/url_shorten_overview.png)
 ![summary](../resources/problems/url_shorten/url_shorten_detail.png)

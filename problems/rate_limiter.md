@@ -1,28 +1,3 @@
-# Table of contents
-
-- [Problem Statement](#problem-statement)
-- [Requirements](#requirements)
-  - [Functional Requirements](#functional-requirements)
-  - [Non-Functional Requirements](#non-functional-requirements)
-- [Back of Envelope Estimations/Capacity Estimation & Constraints](#back-of-envelope-estimationscapacity-estimation--constraints)
-- [Throttling Types](#throttling-types)
-- [Where to put  the rate limiter ?](#where-to-put--the-rate-limiter-)
-- [High Level System Design and Algorithms](#high-level-system-design-and-algorithms)
-  - [High Level Design](#high-level-design)
-    - [HTTP Response Headers](#http-response-headers)
-  - [Algorithms for Rate Limiting](#algorithms-for-rate-limiting)
-    - [Token Bucket](#token-bucket)
-    - [Leaky Bucket](#leaky-bucket)
-    - [Fixed Window Counter](#fixed-window-counter)
-    - [Sliding(Rolling) Window Log](#slidingrolling-window-log)
-    - [Sliding(Rolling) Window Counter](#slidingrolling-window-counter)
-    - [Comparision of rate-limiting algorithms](#comparision-of-rate-limiting-algorithms)
-  - [Rate Limiting in Distributed Systems](#rate-limiting-in-distributed-systems)
-    - [All To All (also known as Broadcasting)](#all-to-all-also-known-as-broadcasting)
-    - [Distributed database at each node](#distributed-database-at-each-node)
-    - [Centralized database/cache](#centralized-databasecache)
-- [References](#references)
-
 ## Problem Statement
 An API rate limiter will throttle users based on the number of requests they are sending.
 Benefits of API Rate limiter

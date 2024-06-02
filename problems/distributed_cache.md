@@ -1,7 +1,5 @@
 ## Problem Statement
 
-## Clarification Questions to Interviewer 
-
 ## Requirements
 ### Functional Requirements
 #### Below the line (out of scope)
@@ -10,7 +8,7 @@
 
 ## Back of Envelope Estimations/Capacity Estimation & Constraints
 ## High-level API design 
-## Data Model
+## Database Design
 ## High Level System Design
 ## Deep Dive
 ## References

@@ -1,22 +1,19 @@
-
-# Unique ID Generator
-
 ## Problem Statement
 Design a system to generate unique IDs in a distributed environment, ensuring that the IDs are globally unique across all nodes and can be generated at a high throughput rate.
 
 ## Requirements
 
 ### Functional Requirements
-* **Uniqueness**: Each time the ID generator is called, it returns a key that is unique across all node points for the system.
-* **Sequencing**: IDs mush be sortable or sequenced. The ID has a timestamp. A timestamp allows the user to order the entries according to the time they were created.
-* **Predictability**: IDs can be sequential or random based on the use case.
+- **Uniqueness**: Each time the ID generator is called, it returns a key that is unique across all nodes for the system.
+- **Sequencing**: IDs must be sortable or sequenced. The ID has a timestamp, allowing users to order entries according to the time they were created.
+- **Predictability**: IDs can be sequential or random based on the use case.
 
 ### Non-Functional Requirements
-* **Availability**: Since multiple events happen even at the level of nanoseconds, our system should generate IDs for all the events that occur.
-* **Scalability**: Generate at least a billion unique IDs per day.
-* **Latency**:  Happens in real-time with minimal latency.
-* **Security**: Encryption at rest (in data store), encryption in transist using https
-* **Observability**:  Metrics, monitors, alarms, tracing, logging
+- **Availability**: The system should generate IDs for all events that occur, even at nanosecond levels.
+- **Scalability**: Generate at least a billion unique IDs per day.
+- **Latency**: ID generation should occur in real-time with minimal latency.
+- **Security**: Encryption at rest (in data store), encryption in transit using HTTPS.
+- **Observability**: Metrics, monitors, alarms, tracing, logging.
 
 ## Back of Envelope Estimations/Capacity Estimation & Constraints
 * **Assumptions**:
@@ -44,7 +41,7 @@ Response:
 
 
 ## High Level Design
-### Option1: [Centralized] Ticket Server - Using a Database
+### Option1: Centralized Ticket Server - Using a Database
 * Use a centralized auto-increment feature in a single central database server called the Ticket Server. Instead of increasing the next ID by 1, we increase it by k, where k is the number of database servers in use.
 * **Pros**
     * Sequenced ids
@@ -56,7 +53,7 @@ Response:
 
 ![](../resources/problems/unique_id/ticket_server.png)
 
-### Option2: [Centralized] Using a Range Handler
+### Option2: Centralized Using a Range Handler
 * A range handler pre-allocates a range of IDs to different nodes.
 * **Implementation**:
   * Centralized service called range handle that allocates a range of IDs to each generator node.
@@ -72,11 +69,12 @@ Response:
 
 ![](../resources/problems/unique_id/range_handler.png)
 
-### Option3: [Decentralized] Using UUID
-* UUIDs (universally unique IDs) are 128-bit(32 char) number
-* UUID consists of 32 hexadecimal (base-16) digits, displayed in five groups separated by hyphens
-* Example of UUID: ``09c93e62-50b4-468d-bf8a-c07e1040bfb2``
-* UUIDs have a very low probability of collision, making them suitable for generating unique IDs.
+### Option3: Decentralized Using UUID
+* **Description**: 
+  * UUIDs (universally unique IDs) are 128-bit(32 char) number
+  * UUID consists of 32 hexadecimal (base-16) digits, displayed in five groups separated by hyphens
+  * Example of UUID: ``09c93e62-50b4-468d-bf8a-c07e1040bfb2``
+  * UUIDs have a very low probability of collision, making them suitable for generating unique IDs.
 * **Implementation**:
   * Each server runs a UUID generation library.
 * **Pros**
@@ -92,8 +90,9 @@ Response:
     * IDs could be non-numeric.
 ![](../resources/problems/unique_id/uuid.png)
 
-### Option4:  [Decentralized] Using Unix Time Stamps
-* **Description**: Use Unix timestamps combined with a sequence number.
+### Option4:  Decentralized Using Unix Time Stamps
+* **Description**: 
+  * Use Unix timestamps combined with a sequence number.
 * **Implementation**:
   * Each node generates IDs using current timestamp and a sequence number.
   * Ensure sequence number is reset and managed properly.
@@ -105,12 +104,13 @@ Response:
   * **Scalability**: Weak due to potential timestamp collisions.
   * **Causality**: Weak causality as it depends on clock synchronization.
 
-### Option5:  [Decentralized] Using Twitter SnowFlake
-* Divide an ID into different sections:
-    * Sign (1 bit): Always be 0 (Reserved for future used).
-    * Timestamp (41 bits): Milliseconds since the epoch or custom epoch.
-    * Machine ID (10 bits): Hold up to 1024 machines.
-    * Sequence number (12 bits): The sequence number is incremented by 1 and is reset to 0 every millisecond.
+### Option5:  Decentralized Using Twitter SnowFlake
+* **Description**: 
+  * Divide an ID into different sections:
+      * Sign (1 bit): Always be 0 (Reserved for future used).
+      * Timestamp (41 bits): Milliseconds since the epoch or custom epoch.
+      * Machine ID (10 bits): Hold up to 1024 machines.
+      * Sequence number (12 bits): The sequence number is incremented by 1 and is reset to 0 every millisecond.
 * **Implementation**:
   * Each node is configured with a unique machine ID.
   * Nodes generate IDs using the current timestamp, machine ID, and sequence number.
@@ -126,8 +126,9 @@ Response:
 
 ![](../resources/problems/unique_id/snowflake.png)
 
-### Option6:  [Decentralized] Using Logical Clocks
-* **Description**: Use logical clocks to order events.
+### Option6:  Decentralized Using Logical Clocks
+* **Description**: 
+  * Use logical clocks to order events.
 * **Implementation**:
   * Each node maintains a logical clock.
   * IDs are generated using logical clock values.
@@ -138,8 +139,9 @@ Response:
   * Complexity in implementation.
   * Potential for clock skew.
 
-### Option7:  [Decentralized] TrueTime API
-* **Description**: Google's TrueTime API uses bounded time intervals to ensure causality.
+### Option7:  Decentralized Using TrueTime API
+* **Description**:
+  * Google's TrueTime API uses bounded time intervals to ensure causality.
 * **Implementation**:
   * Utilize TrueTime API to get precise timestamps.
   * Generate IDs using these timestamps.
@@ -181,4 +183,3 @@ Response:
 * https://towardsdatascience.com/ace-the-system-design-interview-distributed-id-generator-c65c6b568027
 * https://medium.com/double-pointer/system-design-interview-scalable-unique-id-generator-twitter-snowflake-or-a-similar-service-18af22d74343
 * Alex-Xu - Vol1 - Chapter 7
-* 
