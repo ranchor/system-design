@@ -20,9 +20,9 @@ Design a scalable and efficient system for a ride-hailing service similar to Ube
 
 ### Non-Functional Requirements
 - **Low Latency**: The system should prioritize low latency for ride matching to ensure quick response times for users and drivers.
-- **Strong Consistency**: The system should ensure strong consistency in ride matching to prevent any driver from being assigned multiple rides simultaneously.
 - **High Availability**: The system should be highly available and reliable, minimizing downtime and ensuring that ride requests can be processed 24/7.
-- **High Throughput**: The system should be able to handle high throughput, especially during peak hours or special events.
+- **Strong/High Consistency**: The system should ensure strong consistency in ride matching to prevent any driver from being assigned multiple rides simultaneously.
+- **High Scalability**: The system should be able to handle high throughput, especially during peak hours or special events.
 - **Security**: Implement robust security measures to protect user data, including encryption of sensitive information and authentication mechanisms.
 
 #### Below the line (out of scope)
@@ -37,3 +37,9 @@ Design a scalable and efficient system for a ride-hailing service similar to Ube
 ## Deep Dive
 ## References
 * https://www.hellointerview.com/learn/system-design/answer-keys/uber
+* https://medium.com/@karan99/system-design-uber-33593137a4fe
+* Code Karle
+  * https://www.youtube.com/watch?v=Tp8kpMe-ZKw
+  * https://www.codekarle.com/system-design/Uber-system-design.html
+  * https://github.com/codekarle/system-design/blob/master/system-design-prep-material/architecture-diagrams/Uber%20System%20Design.png
+* https://medium.com/towards-data-science/ace-the-system-design-interview-uber-lyft-7e4c212734b3  

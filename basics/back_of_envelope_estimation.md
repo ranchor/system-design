@@ -90,3 +90,4 @@ Power           Exact Value         Approx Value        Bytes
 * [system-design-primer - Powers of two table](https://github.com/donnemartin/system-design-primer/blob/master/README.md#powers-of-two-table)
 * [system-design-primer - Latency numbers every programmer should know](https://github.com/donnemartin/system-design-primer/blob/master/README.md#latency-numbers-every-programmer-should-know)
 * https://colin-scott.github.io/personal_website/research/interactive_latency.html
+* https://matthewdbill.medium.com/back-of-envelope-calculations-cheat-sheet-d6758d276b05

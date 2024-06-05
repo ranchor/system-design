@@ -1,7 +1,8 @@
 ## System Design Key Concepts
 - [Vertical vs Horizontal Scaling](https://newsletter.ashishps.com/p/system-design-vertical-vs-horizontal-scaling)
-- [CAP Theorem](https://www.bmc.com/blogs/cap-theorem/)
-- [Consistent Hashing](https://highscalability.com/consistent-hashing-algorithm/)
+- [CAP Theorem](https://github.com/ranchor/system-design/blob/main/basics/cap_theorem.md)
+- [PACELC Theorem]
+- [Consistent Hashing](https://github.com/ranchor/system-design/blob/main/basics/consistent_hashing.md)
 - [Domain Name System (DNS)](https://www.cloudflare.com/learning/dns/what-is-dns/)
 - [Content Delivery Network (CDN)](https://www.cloudflare.com/learning/cdn/what-is-a-cdn/)
 - [Load Balancing](https://aws.amazon.com/what-is/load-balancing/)
@@ -30,11 +31,15 @@
 - [Circuit Breaker](https://medium.com/geekculture/design-patterns-for-microservices-circuit-breaker-pattern-276249ffab33)
 - [Checksums](https://newsletter.ashishps.com/p/what-are-checksums)
 - [Back of Envelope Estimation]()
+- [Spanner]()
+- [Kafka]()
+- [MongoDB]()
 
 ## System Design Interview Problems
 ## Blog Posts/Github Links to Follows
 - [awesome-system-design-resources](https://github.com/ashishps1/awesome-system-design-resources/blob/main/README.md)
 - [Jordan System Design Basics PowerPoint](https://drive.google.com/drive/folders/1ChodcbMZ4KqS9WP9gin4sLVdCsgD3uoE)
+- https://github.com/karanpratapsingh/system-design
 ## YouTube Channels
 - [ByteByteGo](https://www.youtube.com/@ByteByteGo)
 - [System Design Interview](https://www.youtube.com/@SystemDesignInterview)

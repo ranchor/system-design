@@ -11,7 +11,7 @@
 - [References](#references)
 
 # CAP Theorem
-![](../../../resources/sd/cap_overall.png)
+![](../resources/basics/cap/cap_overall.png)
 * [CAP theorem](https://en.wikipedia.org/wiki/CAP_theorem)(also called brewer’s theorem) states that it is impossible for a distributed system to simultaneously 
   provide all three of the following desirable properties:
   * **Consistency (C)**: every read receives the most recent write or an error.
@@ -29,14 +29,14 @@
 * [ACID](https://en.wikipedia.org/wiki/ACID) databases choose consistency over availability.
 * [BASE](https://en.wikipedia.org/wiki/Eventual_consistency) systems choose availability over consistency.
   
-![](../../../resources/sd/cap_pie_chart.png)
+![](../resources/basics/cap/cap_pie_chart.png)
 
 ## CP - Consistency/Partition Tolerance
 * Wait for a response from the partitioned node which could result in a timeout error. 
 * The system can also choose to return an error, depending on the scenario you desire. 
 * CP is a good choice if your business needs require atomic reads and writes.
 
-![](../../../resources/sd/cap_cp.png)
+![](../resources/basics/cap/cap_cp.png)
 ## AP - Availability/Partition Tolerance
 * Responses return the most readily available version of the data available on any node, which might not be the 
 latest.   
@@ -45,7 +45,7 @@ latest.
 * AP is a good choice if the business needs to allow for eventual consistency or when the system needs to continue 
   working despite external errors.
 
-  ![](../../../resources/sd/cap_ap.png)
+  ![](../resources/basics/cap/cap_ap.png)
 
 # Consistency patterns
 With multiple copies of the same data, we are faced with options on how to synchronize them so clients have a 
@@ -83,3 +83,4 @@ Three types of Consistency:
 * [CAP theorem video](https://www.youtube.com/watch?v=k-Yaq8AHlFA)
 * https://medium.com/must-know-computer-science/system-design-cap-problem-13997ed7524c
 * https://iq.opengenus.org/consistency-patterns-in-system-design/
+* https://www.bmc.com/blogs/cap-theorem/

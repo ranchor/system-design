@@ -124,3 +124,4 @@ public class ConsistentHash<T> {
 * https://itnext.io/introducing-consistent-hashing-9a289769052e
 * https://medium.com/@sandeep4.verma/consistent-hashing-8eea3fb4a598
 * https://www.toptal.com/big-data/consistent-hashing
+* https://highscalability.com/consistent-hashing-algorithm/

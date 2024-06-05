@@ -183,3 +183,4 @@ Response:
 * https://towardsdatascience.com/ace-the-system-design-interview-distributed-id-generator-c65c6b568027
 * https://medium.com/double-pointer/system-design-interview-scalable-unique-id-generator-twitter-snowflake-or-a-similar-service-18af22d74343
 * Alex-Xu - Vol1 - Chapter 7
+* https://www.linkedin.com/posts/sahnlam_explaining-5-unique-id-generators-used-in-activity-7158703473058791424-aTAN/
