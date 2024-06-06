@@ -48,7 +48,7 @@
 * Thus, they are highly scalable and can handle high volumes of traffic
 * Ideal for session management e.g. localStorage in the browser, shopping cart.
 * Eg: Amazon DynamoDB, Redis, , Aerospike, Memcached, Riak, Couchbase, Oracle Berkeley DB
-![](../../../resources/sd/db_hash.png)
+![](../resources/basics/db/db_hash.png)
 
 #### Document databases
 >Abstraction: key-value store with documents stored as values
@@ -58,7 +58,7 @@
 * Each document can have an entirely different structure.
 * Ideal for storing any type of data, including images, videos and even geospatial data
 * Eg: MongoDB, ElasticSearch, CouchDB, CosmosDB, Amazon SimpleDB
-![](../../../resources/sd/db_document.png)
+![](../resources/basics/db/db_document.png)
 
 #### Wide-column / columnar databases / column-based
 >Abstraction: nested map ColumnFamily<RowKey, Columns<ColKey, Value, Timestamp>>
@@ -69,9 +69,9 @@
 * Ideal for Data Warehouses and Business Intelligence (B.I.)
 * Eg: Cassandra, Bigtable, Hadoop, HBase, Hypertable, Druid, Azure SQL Data Warehouse
 
-![](../../../resources/sd/db_column.png)
+![](../resources/basics/db/db_column.png)
 
-![](../../../resources/sd/db_column1.png)
+![](../resources/basics/db/db_column1.png)
 
 #### Graph database
 * Data is stored in graph structures
@@ -80,7 +80,7 @@
   * Lines: connections between the entities
 * Ideal for fraud detection, recommendation engineers, network mapping, social networks etc.
 * Eg: Neo4j, Virtuoso, ArangoDB, OrientDB, GraphDB, Amazon Neptune, Fauna, FlockDB
-  ![](../../../resources/sd/db_graph.png)
+  ![](../resources/basics/db/db_graph.png)
 
 # Differences between SQL and NoSQL
 | Attributes                                 | SQL                                                                                                                                                                                      | NoSQL                                                                                                                                  |
@@ -151,10 +151,10 @@
 * [Netflix built fast, fault-tolerant systems with NoSQL](https://netflixtechblog.com/nosql-at-netflix-e937b660b4c)
 * [Gojek migrated from PostgreSQL to Cassandra to handle 100 Million transactions per month](https://www.gojek.io/blog/database-optimisation-on-cassandra)
 
-![](../../../resources/sd/db_choice.png)
+![](../resources/basics/db/db_choice.png)
 
 
-![](../../../resources/sd/db_refractor.png)
+![](../resources/basics/db/db_refractor.png)
 
 # Data Replication
 # Data Partitioning/Sharding

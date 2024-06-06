@@ -3,11 +3,11 @@ Back Of The Envelope Calculations or Ballpark estimations
 # Numbers Crunching
 ## Data Types to Bytes
 General estimates. Depending on the language that implements them, the actual size stored in memory may vary
-![](../../../resources/sd/estimation_data_types.png)
+![](../resources/basics/estimation/estimation_data_types.png)
 
 ## Handling Bytes
 ### Powers of Two
-![](../../../resources/sd/estimation_power_of_two.png)
+![](../resources/basics/estimation/estimation_power_of_two.png)
 
 ```
 Power           Exact Value         Approx Value        Bytes
@@ -23,7 +23,7 @@ Power           Exact Value         Approx Value        Bytes
 ```
 
 ### Byte Conversions
-![](../../../resources/sd/estimation_byte_conversions.png)
+![](../resources/basics/estimation/estimation_byte_conversions.png)
 
 ## Time to Seconds
 | Hour       | Day               | Month                     | Year                     |
@@ -42,7 +42,7 @@ Power           Exact Value         Approx Value        Bytes
 | 1 billion reqs/month   | 400 reqs/sec        |
 
 ## Latency numbers every programmer should know
-![](../../../resources/sd/estimation_latency.png)
+![](../resources/basics/estimation/estimation_latency.png)
 
 ### Time Conversions
 * 1 ns (nanoseconds) = 10^-9 seconds
@@ -62,7 +62,7 @@ Power           Exact Value         Approx Value        Bytes
 * High availability is measured as a percentage. Most services fall between 99% and 100%.
 * A service level agreement (SLA) is a commonly used term for service providers
 * Uptime is traditionally measured in nines. The more the nines, the better.
-  ![](../../../resources/sd/estimation_availability.png)
+  ![](../resources/basics/estimation/estimation_availability.png)
 
 ## Typical Modern Resources Sizes
 ### General Purpose Amazon EC2 Instances

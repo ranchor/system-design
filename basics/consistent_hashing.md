@@ -1,48 +1,43 @@
 # Simple Hashing in Distributed Systems
-* Process to map data of arbitrary size to fixed-size values using ``key % n (n is the number of servers)``
-![](../../../resources/sd/ch_intro.png)
+Hashing is a technique to map data of arbitrary size to fixed-size values using a hash function. A common approach in distributed systems is to use `key % n` (where `n` is the number of servers) to determine which server should store the data.
+![](../resources/basics/ch/ch_intro.png)
 
 ## Challenges
-* **Rehashing Problem**: Adding and removing servers from the cluster hashed with mod-N hashing 
-requires rehashing of a massive amount of data to different servers/nodes.
-* **HotSpots**: It may not be load balanced, especially for non-uniformly distributed data. Some servers will become hot spots.
+- **Rehashing Problem**: Adding or removing servers from the cluster requires rehashing a massive amount of data, which can be resource-intensive and time-consuming.
+- **Hotspots**: Non-uniformly distributed data can lead to some servers becoming hotspots, causing load imbalance.
 
 # Consistent Hashing
-* Consistent Hashing is a distributed hashing scheme that operates independently of the number of servers or objects  
-in a distributed hash table by assigning them a position on an abstract circle, or hash ring. This allows servers 
-and objects to scale without affecting the overall system.
+* Consistent Hashing is a distributed hashing scheme that operates independently of the number of servers or objects in a distributed hash table by assigning them a position on an abstract circle, or hash ring. This allows servers and objects to scale without affecting the overall system.
 * It maps data to physical nodes and ensures that only a small set of keys move when servers are 
   added or removed.
 
-![](../../../resources/sd/ch_expl1.png)
+![](../resources/basics/ch/ch_expl1.png)
 
-* Following configuration to map data to a node:
-  * **Placement of servers on the ring**: Servers are placed in a circle (or in-ring of hash). Hash of servers is calculated
-    (in this example)  on their IP addresses and according to their hash value(which is between 0–360) are placed on the ring.
-  
-  ![](../../../resources/sd/ch_placement1.png)
-  * **Placement of data on the ring**: Hash of data is calculated on it’s key (Aadhar-id) and they are also placed on 
-    this ring(Hash lies between 0–360)
+## Configuration to Map Data to a Node
+* **Placement of servers on the ring**: Servers are placed in a circle (or in-ring of hash). Hash of servers is calculated
+  (in this example)  on their IP addresses and according to their hash value(which is between 0–360) are placed on the ring.
 
-  ![](../../../resources/sd/ch_placement2.png)
-  * **Determining the placement of data on Servers**: To map we travel in a **clockwise** direction on the ring from the 
-    point key is located till the point we find a server. This is the server where this key belongs
+![](../resources/basics/ch/ch_placement1.png)
+* **Placement of data on the ring**: Hash of data is calculated on it’s key (Aadhar-id) and they are also placed on 
+  this ring(Hash lies between 0–360)
+
+![](../resources/basics/ch/ch_placement2.png)
+* **Determining the placement of data on Servers**: To map we travel in a **clockwise** direction on the ring from the 
+  point key is located till the point we find a server. This is the server where this key belongs
 
 * When the hash table is resized (a server is added or deleted), only ``k/n`` keys need to be remapped (``k`` is the 
   total number of keys, and ``n`` is the total number of servers).
 
 ## Potential Issues
-* **Adding or removing token**: adding or removing nodes will result in recomputing the tokens causing a significant  
-  administrative overhead for a large cluster.
-* **Hotspots**: Relatively large range assigned to each node can cause hotspots if data is not evenly distributed.
-* **Node rebuilding**: In case of a node rebuild, only a few nodes can participate in bootstrapping the replacement, 
-  leading to service disruption.
-* **Heterogeneous clusters**: Since every node assigned a single token, the expectation is that all nodes will hold the 
-  same amount of data. Trying to subdivide ranges to deal with nodes of varying sizes is a difficult and error-prone.
+- **Adding or Removing Tokens**: Adding or removing nodes will result in recomputing the tokens, causing significant administrative overhead for a large cluster.
+- **Hotspots**: Relatively large ranges assigned to each node can cause hotspots if data is not evenly distributed.
+- **Node Rebuilding**: In the case of a node rebuild, only a few nodes can participate in bootstrapping the replacement, leading to service disruption.
+- **Heterogeneous Clusters**: Since each node is assigned a single token, all nodes are expected to hold the same amount of data. Subdividing ranges to handle nodes of varying sizes is difficult and error-prone.
+
 
 ## Virtual Nodes(VNodes)
 To efficiently handle adding or removing nodes from a cluster, Consistent hashing makes use of virtual nodes.
-![](../../../resources/sd/ch_expl2.png)
+![](../resources/basics/ch/ch_expl2.png)
 ### Advantages of VNodes
 * As VNodes help spread the load more evenly across the physical nodes on the cluster by dividing the hash ranges 
   into  smaller subranges, this speeds up the rebalancing process after adding or removing nodes.

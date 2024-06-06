@@ -33,7 +33,7 @@ systems or sites to improve query processing performance and make the data more 
 * Cons:
     * If the value whose range is used for sharding isn’t chosen carefully, the partitioning scheme will lead to unbalanced servers.
 
-![](../../../resources/sd/sharding_horizontal.png)
+![](../resources/basics/sharding/sharding_horizontal.png)
 ## Vertical partitioning
 * Divides the table vertically (by columns), which means that the structure of the main table changes in the new ones.
 * Divide data for a specific feature to their own server.
@@ -45,7 +45,7 @@ systems or sites to improve query processing performance and make the data more 
       request needs to combine a user profile, connections, and articles data. Increase overall complexity
     * To support growth of the application, a database may need further partitioning.
 
-![](../../../resources/sd/sharding_vertical.png)
+![](../resources/basics/sharding/sharding_vertical.png)
 
 ## Directory-based partitioning
 * A lookup service that knows the partitioning scheme and abstracts it away from the database access code.
@@ -53,7 +53,7 @@ systems or sites to improve query processing performance and make the data more 
 * Cons
     * Can be a single point of failure.
 
-![](../../../resources/sd/sharding_directory.png)
+![](../resources/basics/sharding/sharding_directory.png)
 
 # Partitioning criteria/techniques
 ## Range partitioning
@@ -99,7 +99,7 @@ PARTITION BY LIST(store_id) (
 ```
 
 
-![](../../../resources/sd/sharding_criteria.png)
+![](../resources/basics/sharding/sharding_criteria.png)
 
 
 ## Round-robin partitioning
@@ -116,7 +116,7 @@ PARTITION BY LIST(store_id) (
     * Composite List–Hash Partitioning
     * Composite List–List Partitioning
 
-![](../../../resources/sd/sharding_criteria_composite.png)
+![](../resources/basics/sharding/sharding_criteria_composite.png)
 
 # Common problems of sharding
 ## Joins and denormalization
