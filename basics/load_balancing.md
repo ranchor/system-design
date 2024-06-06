@@ -36,7 +36,7 @@ maximize throughput, minimize response time, and avoid overloading any single re
    - Supports auto-scaling and geographic load balancing for global deployments.
 
 ## Common Load-balancing Algorithms
-![](../resources/basics/load_balancing/algo.jpg)
+![](../resources/basics/ag_lb/algo.jpg)
 
 ### Static Load Balancing Algorithms
 
@@ -89,9 +89,10 @@ maximize throughput, minimize response time, and avoid overloading any single re
 
 
 ## References
+* Videos
+  [![Load Balance Algo](https://img.youtube.com/vi/dBmxNsS3BGE/maxresdefault.jpg)](https://www.youtube.com/watch?v=dBmxNsS3BGE)
 * https://blog.bytebytego.com/p/ep47-common-load-balancing-algorithms 
 * https://www.educative.io/courses/grokking-modern-system-design-interview-for-engineers-managers/global-and-local-load-balancing
 * https://medium.com/@maheshsaini.sec/system-design-load-balancing-algorithms-in-nutshell-9363547141d8
 * https://docs.google.com/presentation/d/1Q227M-Bnk5spHr8VUG5Atq7AROiMd6oVCnvk1fc1RfY/edit#slide=id.g12837422678_0_61
-* Understand Load-balancing Algorithms
-[![Load Balance Algo](https://img.youtube.com/vi/dBmxNsS3BGE/maxresdefault.jpg)](https://www.youtube.com/watch?v=dBmxNsS3BGE)
+* https://aws.amazon.com/what-is/load-balancing/
