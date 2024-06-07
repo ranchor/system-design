@@ -1,7 +1,7 @@
 ## System Design Key Concepts
 
 ### Chapter1 
-- [Vertical vs Horizontal Scaling](https://newsletter.ashishps.com/p/system-design-vertical-vs-horizontal-scaling)
+
 - [Domain Name System (DNS)](https://github.com/ranchor/system-design/blob/main/basics/dns.md)
 - [Content Delivery Network (CDN)](https://github.com/ranchor/system-design/blob/main/basics/cdn.md)
 - [Load Balancing](https://github.com/ranchor/system-design/blob/main/basics/load_balancing.md)
@@ -12,12 +12,14 @@
 - [Availability]()
 - [Consistency](https://systemdesign.one/consistency-patterns/)
 - [Reliability]()
+- [Scalability](https://newsletter.ashishps.com/p/system-design-vertical-vs-horizontal-scaling)
 - [CAP Theorem and PACELC Theorem](https://github.com/ranchor/system-design/blob/main/basics/cap_theorem.md)
 - [Consistent Hashing](https://github.com/ranchor/system-design/blob/main/basics/consistent_hashing.md)
-- [Security]()
-- [Monitoring]()
+- [Security](https://github.com/ranchor/system-design/blob/main/basics/security.md)
+- [Monitoring](https://github.com/ranchor/system-design/blob/main/basics/monitoring.md)
+- [REST, GraphQL, gRPC]()
 - [Long Polling,WebSockets,SSE](https://github.com/ranchor/system-design/blob/main/basics/lp_ws_sse_wh.md)
-- [OSI Model]()
+- [OSI Model](https://github.com/ranchor/system-design/blob/main/basics/osi_model.md)
 - [TCP vs UDP]()
 - [Back of Envelope Estimation](https://github.com/ranchor/system-design/blob/main/basics/back_of_envelope_estimation.md)
 
@@ -51,6 +53,8 @@
 - [Kafka]()
 - [MongoDB]()
 - [Cascandra]()
+- [Elastic Search]()
+- [Geohashing and Quadtrees]()
 - [HeartBeats](https://newsletter.ashishps.com/p/heartbeats-in-distributed-systems)
 - [Circuit Breaker](https://medium.com/geekculture/design-patterns-for-microservices-circuit-breaker-pattern-276249ffab33)
 - [Architecture Patterns](https://github.com/ranchor/system-design/blob/main/basics/system_design_patterns.md)
@@ -69,6 +73,7 @@
 - **[Design a File Storage System / GFS / HDFS]()**
 - **[Design a object storage system / S3 / Dropbox]()**
 - **[Design Distributed Locking Service]()**
+- **[Design Distributed Counters]()**
 
 ## Batch Jobs
 - [Design Job Scheduler/Distributed Task Scheduler](https://github.com/ranchor/system-design/blob/main/problems/distributed_job_scheduler.md)
