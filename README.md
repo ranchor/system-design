@@ -16,6 +16,7 @@
 - [Data Redundancy](https://www.egnyte.com/guides/governance/data-redundancy)
 - [Data Partitioning](https://github.com/ranchor/system-design/blob/main/basics/data_partitioning.md)
 - [Transactions](https://github.com/ranchor/system-design/blob/main/basics/transactions.md)
+- [Distributed Transactions](https://github.com/ranchor/system-design/blob/main/basics/transactions.md)
 - [Batch Processing vs Stream Processing](https://newsletter.ashishps.com/p/d9442268-03d8-4f55-a103-7a3d4fb54661)
 - [Synchronous vs. asynchronous communications](https://newsletter.ashishps.com/p/aec1cebf-6060-45a7-8e00-47364ca70761)
 - [Gossip Protocol](https://github.com/ranchor/system-design/blob/main/basics/gossip_protocol.md)
@@ -36,13 +37,17 @@
 - [MongoDB]()
 - [OSI Model]()
 - [TCP vs UDP]()
-- [System design Patterns](https://github.com/ranchor/system-design/blob/main/basics/system_design_patterns.md)
+- [Architecture Patterns](https://github.com/ranchor/system-design/blob/main/basics/system_design_patterns.md)
 
 ## System Design Interview Problems
 ## Blog Posts/Github Links to Follows
 - [awesome-system-design-resources](https://github.com/ashishps1/awesome-system-design-resources/blob/main/README.md)
 - [Jordan System Design Basics PowerPoint](https://drive.google.com/drive/folders/1ChodcbMZ4KqS9WP9gin4sLVdCsgD3uoE)
 - https://github.com/karanpratapsingh/system-design
+- [highscalability](https://highscalability.com/)
+- [ByteByteGoHq](https://github.com/ByteByteGoHq/system-design-101)
+- [designing-data-intensive-applications notes](https://github.com/keyvanakbary/learning-notes/blob/master/books/designing-data-intensive-applications.md)
+- [Alex Wu Books Notes](https://github.com/preslavmihaylov/booknotes/tree/master/system-design/system-design-interview)
 ## YouTube Channels
 - [ByteByteGo](https://www.youtube.com/@ByteByteGo)
 - [System Design Interview](https://www.youtube.com/@SystemDesignInterview)
