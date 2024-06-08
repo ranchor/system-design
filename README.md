@@ -27,24 +27,25 @@
 
 ### Chapter2
 - [Databases](https://newsletter.ashishps.com/p/15-types-of-databases)
-**- [SQL vs NoSQL](https://github.com/ranchor/system-design/blob/main/basics/database_sql_vs_nosql.md)**
+- **[SQL vs NoSQL](https://github.com/ranchor/system-design/blob/main/basics/database_sql_vs_nosql.md)**
 - [Database Index](https://newsletter.ashishps.com/p/a-detailed-guide-on-database-indexes)
-**- [Data Replication](https://redis.com/blog/what-is-data-replication/**)
-**- [Data Redundancy](https://www.egnyte.com/guides/governance/data-redundancy)**
+- **[Data Replication](https://redis.com/blog/what-is-data-replication/)**
+- **[Data Redundancy](https://www.egnyte.com/guides/governance/data-redundancy)**
 - [Data Partitioning](https://github.com/ranchor/system-design/blob/main/basics/data_partitioning.md)
-**- [Transactions](https://github.com/ranchor/system-design/blob/main/basics/transactions.md)**
+- **[Transactions](https://github.com/ranchor/system-design/blob/main/basics/transactions.md)**
 - [Distributed Transactions](https://github.com/ranchor/system-design/blob/main/basics/transactions.md)
-**- [Batch Processing vs Stream Processing](https://newsletter.ashishps.com/p/d9442268-03d8-4f55-a103-7a3d4fb54661)**
-- [Synchronous vs. asynchronous communications](https://newsletter.ashishps.com/p/aec1cebf-6060-45a7-8e00-47364ca70761)
+- **[Batch Processing vs Stream Processing](https://newsletter.ashishps.com/p/d9442268-03d8-4f55-a103-7a3d4fb54661)**
+- [Synchronous vs asynchronous communications](https://newsletter.ashishps.com/p/aec1cebf-6060-45a7-8e00-47364ca70761)
 - [Gossip Protocol](https://github.com/ranchor/system-design/blob/main/basics/gossip_protocol.md)
-**- [Coordination Services]()**
-**- [Blob Storage]()**
+- **[Coordination Services]()**
+- **[Blob Storage]()**
 - [Idempotency](https://blog.dreamfactory.com/what-is-idempotency/)
 - [Parquet]()
-- [Geospatial Indexs]()
 - [Bloom Filters](https://www.enjoyalgorithms.com/blog/bloom-filter)
 - [Consensus Algorithms](https://medium.com/@sourabhatta1819/consensus-in-distributed-system-ac79f8ba2b8c)
 - [Checksums](https://newsletter.ashishps.com/p/what-are-checksums)
+- [HeartBeats](https://newsletter.ashishps.com/p/heartbeats-in-distributed-systems)
+- [Circuit Breaker](https://medium.com/geekculture/design-patterns-for-microservices-circuit-breaker-pattern-276249ffab33)
 
 
 ### Chapter3
@@ -56,12 +57,12 @@
 - [Cascandra]()
 - [Elastic Search]()
 - [Geohashing and Quadtrees]()
-- [HeartBeats](https://newsletter.ashishps.com/p/heartbeats-in-distributed-systems)
-- [Circuit Breaker](https://medium.com/geekculture/design-patterns-for-microservices-circuit-breaker-pattern-276249ffab33)
+- [Geospatial Indexs]()
+
 
 
 ### Chapter4 
-**- [Architecture Patterns](https://github.com/ranchor/system-design/blob/main/basics/system_design_patterns.md)**
+- **[Architecture Patterns](https://github.com/ranchor/system-design/blob/main/basics/system_design_patterns.md)**
 - [Design Principles](https://blog.bytebytego.com/p/mastering-design-principles-solid)
 - [API Design]()
 
