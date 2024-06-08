@@ -16,6 +16,7 @@
 - [CAP Theorem and PACELC Theorem](https://github.com/ranchor/system-design/blob/main/basics/cap_theorem.md)
 - [Consistent Hashing](https://github.com/ranchor/system-design/blob/main/basics/consistent_hashing.md)
 - [Security](https://github.com/ranchor/system-design/blob/main/basics/security.md)
+    - [AuthN and AuthZ]()
 - [Monitoring](https://github.com/ranchor/system-design/blob/main/basics/monitoring.md)
 - [REST, GraphQL, gRPC]()
 - [Long Polling,WebSockets,SSE](https://github.com/ranchor/system-design/blob/main/basics/lp_ws_sse_wh.md)
@@ -26,18 +27,18 @@
 
 ### Chapter2
 - [Databases](https://newsletter.ashishps.com/p/15-types-of-databases)
-- [SQL vs NoSQL](https://www.integrate.io/blog/the-sql-vs-nosql-difference/)
+**- [SQL vs NoSQL](https://github.com/ranchor/system-design/blob/main/basics/database_sql_vs_nosql.md)**
 - [Database Index](https://newsletter.ashishps.com/p/a-detailed-guide-on-database-indexes)
-- [Data Replication](https://redis.com/blog/what-is-data-replication/)
-- [Data Redundancy](https://www.egnyte.com/guides/governance/data-redundancy)
+**- [Data Replication](https://redis.com/blog/what-is-data-replication/**)
+**- [Data Redundancy](https://www.egnyte.com/guides/governance/data-redundancy)**
 - [Data Partitioning](https://github.com/ranchor/system-design/blob/main/basics/data_partitioning.md)
-- [Transactions](https://github.com/ranchor/system-design/blob/main/basics/transactions.md)
+**- [Transactions](https://github.com/ranchor/system-design/blob/main/basics/transactions.md)**
 - [Distributed Transactions](https://github.com/ranchor/system-design/blob/main/basics/transactions.md)
-- [Batch Processing vs Stream Processing](https://newsletter.ashishps.com/p/d9442268-03d8-4f55-a103-7a3d4fb54661)
+**- [Batch Processing vs Stream Processing](https://newsletter.ashishps.com/p/d9442268-03d8-4f55-a103-7a3d4fb54661)**
 - [Synchronous vs. asynchronous communications](https://newsletter.ashishps.com/p/aec1cebf-6060-45a7-8e00-47364ca70761)
 - [Gossip Protocol](https://github.com/ranchor/system-design/blob/main/basics/gossip_protocol.md)
-- [Coordination Services]()
-- [Blob Storage]()
+**- [Coordination Services]()**
+**- [Blob Storage]()**
 - [Idempotency](https://blog.dreamfactory.com/what-is-idempotency/)
 - [Parquet]()
 - [Geospatial Indexs]()
@@ -57,11 +58,16 @@
 - [Geohashing and Quadtrees]()
 - [HeartBeats](https://newsletter.ashishps.com/p/heartbeats-in-distributed-systems)
 - [Circuit Breaker](https://medium.com/geekculture/design-patterns-for-microservices-circuit-breaker-pattern-276249ffab33)
-- [Architecture Patterns](https://github.com/ranchor/system-design/blob/main/basics/system_design_patterns.md)
+
+
+### Chapter4 
+**- [Architecture Patterns](https://github.com/ranchor/system-design/blob/main/basics/system_design_patterns.md)**
+- [Design Principles](https://blog.bytebytego.com/p/mastering-design-principles-solid)
+- [API Design]()
 
 ## System Design Interview Problems
 
-## Depth Oriented Problems
+### Depth Oriented Problems
 - [Design Consistent Hashing]()
 - **[Design Distributed Key-Value Store](https://github.com/ranchor/system-design/blob/main/problems/key_value_store.md)**
 - [Design API Rate Limiter](https://github.com/ranchor/system-design/blob/main/problems/rate_limiter.md)
@@ -75,7 +81,7 @@
 - **[Design Distributed Locking Service]()**
 - **[Design Distributed Counters]()**
 
-## Batch Jobs
+### Batch Jobs
 - [Design Job Scheduler/Distributed Task Scheduler](https://github.com/ranchor/system-design/blob/main/problems/distributed_job_scheduler.md)
 - [Design Web Crawler](https://github.com/ranchor/system-design/blob/main/problems/web_crawler.md)
 - **[Design notification system]()**
@@ -83,7 +89,7 @@
 - [Design Price Alert Online System](https://github.com/ranchor/system-design/blob/main/problems/price_tracker.md)
 
 
-## Streaming / Continuous Data Flow
+### Streaming / Continuous Data Flow
 - [Design YouTube](https://github.com/ranchor/system-design/blob/main/problems/youtube.md)
 - [Design Chat System/messenger](https://github.com/ranchor/system-design/blob/main/problems/chat_system.md)
 - [Design News Feed](https://github.com/ranchor/system-design/blob/main/problems/newsfeed_system.md)
@@ -95,7 +101,7 @@
 - [Design Trending Topics (Twitter)/Top K/Heavy Hitters]()
 - [Design Live Comments]()
 
-## User Requests Traffic
+### User Requests Traffic
 - [Design Instagram]()
 - [Design a search autocomplete system]()
 - [Design a google search]()

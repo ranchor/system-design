@@ -124,3 +124,5 @@ Adaptive streaming
 * https://medium.com/@narengowda/netflix-system-design-dbec30fede8d
 * https://medium.com/@narengowda/netflix-system-design-dbec30fede8d
 * https://medium.com/@karan99/system-design-netflix-6962b4f6222
+* https://blog.bytebytego.com/p/netflix-what-happens-when-you-press-288
+* https://blog.bytebytego.com/p/a-brief-history-of-scaling-netflix

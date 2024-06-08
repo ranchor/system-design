@@ -167,3 +167,4 @@
 * https://medium.com/must-know-computer-science/system-design-sql-vs-nosql-4cdfb9f53d69
 * https://www.guru99.com/nosql-tutorial.html
 * https://www.codekarle.com/system-design/Database-system-design.html
+* https://blog.bytebytego.com/p/understanding-database-types
