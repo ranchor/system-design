@@ -126,3 +126,4 @@ Adaptive streaming
 * https://medium.com/@karan99/system-design-netflix-6962b4f6222
 * https://blog.bytebytego.com/p/netflix-what-happens-when-you-press-288
 * https://blog.bytebytego.com/p/a-brief-history-of-scaling-netflix
+* https://github.com/ByteByteGoHq/system-design-101#why-did-amazon-prime-video-monitoring-move-from-serverless-to-monolithic-how-can-it-save-90-cost

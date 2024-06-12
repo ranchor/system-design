@@ -34,7 +34,14 @@ Design a scalable and efficient system for a ride-hailing service similar to Ube
 ## High-level API design 
 ## Database Design
 ## High Level System Design
+![](../resources/problems/uber/uber_ride.png)
 ## Deep Dive
+### How we send continuous location update to rider after booking the ride ?
+### How do we handle frequent driver location updates and efficient proximity searches on location data?
+### How can we manage system overload from frequent driver location updates while ensuring location accuracy?
+### How do we prevent multiple ride requests from being sent to the same driver simultaneously?
+### How can we ensure no ride requests are dropped during peak demand periods?
+### How can you further scale the system to reduce latency and improve throughput?
 ## References
 * https://www.hellointerview.com/learn/system-design/answer-keys/uber
 * https://medium.com/@karan99/system-design-uber-33593137a4fe
@@ -43,3 +50,4 @@ Design a scalable and efficient system for a ride-hailing service similar to Ube
   * https://www.codekarle.com/system-design/Uber-system-design.html
   * https://github.com/codekarle/system-design/blob/master/system-design-prep-material/architecture-diagrams/Uber%20System%20Design.png
 * https://medium.com/towards-data-science/ace-the-system-design-interview-uber-lyft-7e4c212734b3  
+* https://medium.com/@kevinchwong/uber-system-d-526dbc98de48

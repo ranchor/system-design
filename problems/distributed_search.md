@@ -3,7 +3,7 @@
 ## Requirements
 ### Functional Requirements
 * **Search**: Users should get relevant content based on their search queries
-* **Filters and Sortin**g: Ability to filter and sort search results based on various criteria
+* **Filters and Sorting**: Ability to filter and sort search results based on various criteria
 #### Below the line (out of scope)
 ### Non-Functional Requirements
 #### Below the line (out of scope)

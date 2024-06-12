@@ -53,12 +53,16 @@
 - [Message Queues]()
 - [Publish-Subscribe]()
 - [Kafka]()
+- [SQS]()
+- [Kafka vs SQS]()
+- [Apache Flink]()
+- [Apache Spark]()
+- [Fink vs Spark]()
 - [MongoDB]()
 - [Cascandra]()
 - [Elastic Search]()
 - [Geohashing and Quadtrees]()
 - [Geospatial Indexs]()
-
 
 
 ### Chapter4 
@@ -103,11 +107,12 @@
 - [Design Live Comments]()
 
 ### User Requests Traffic
+- [Design a Ticketmaster]()
+- [Design Dropbox]()
 - [Design Instagram]()
-- [Design a search autocomplete system]()
-- [Design a google search]()
-- [Design a ticketmaster]()
-- [Design a local delivery]()
+- [Design a Search AutComplete system]()
+- [Design a Google Search]()
+- [Design a Local Delivery]()
 - [Design a payment system]()
 
 
