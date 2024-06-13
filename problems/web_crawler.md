@@ -96,6 +96,10 @@ A web crawler should avoid sending too many requests to the same host in a short
 
 ![](../resources/problems/web_crawler/mapping-table.png)
 ### HTML Downloader
+#### How to deal with different error code during fetch of url ?
+404(non found), 503(retry), 429(retry), 401 & 403(unauthorzied)
+Blacklist NO SQL store - write in case of 404, 401 and 403
+Worker can put into DLQ during 5xx or 401, 403 error
 #### What about if we fail to fetch a URL?
 SQS with Exponential Backoff: Retry logic with backoff, moving to a dead-letter queue after several retries.
 #### What happens if a downloader goes down?
@@ -144,7 +148,7 @@ To ensure politeness and adhere to robots.txt, we will need to do two things:
 #### Content Dedupe check
 - **Approaches:**
   1. **Checksum/Hashing:**
-     - Generate a checksum or hash of the content and store in URL metadata db/
+     - Generate a checksum or hash of the content and store in URL metadata db.
      - Compare against stored hashes to detect duplicates.
   2. **SimHash:**
      - Generate a SimHash of the content for near-duplicate detection.
@@ -179,9 +183,7 @@ SimHash is a technique used for near-duplicate detection in documents. The idea 
   3. **Database:**
      - Use a database to store and check seen URLs.
      - **Pros:** Scalable.
-     - **Cons:** Higher latency compared to in-memory
-
- solutions.
+     - **Cons:** Higher latency compared to in-memory solutions.
 
 #### How Bloom Filter Works for URL Seen
 A Bloom filter is a space-efficient probabilistic data structure used to test whether an element is a member of a set. It can produce false positives but not false negatives.
@@ -214,9 +216,9 @@ Use Content-Length header to skip overly large files.
 - Use distributed crawling with multiple worker nodes.
 - Implement distributed storage solutions like HDFS or cloud storage.
 - Use message queues (e.g., Kafka) for communication between components.
-## High Level System Design and Algorithm
 ## References
 * [Alex Wu - Vol1 - Chapter 9](https://github.com/preslavmihaylov/booknotes/tree/master/system-design/system-design-interview/chapter10)
 * https://www.hellointerview.com/learn/system-design/answer-keys/web-crawler
 * NK: https://experiencestack.co/distributed-web-crawler-system-design-6c9df8aa7ce4
 * Glance View: https://jc1175.medium.com/how-i-would-design-a-web-crawler-9013251fa9f3
+* https://leetcode.com/discuss/interview-question/system-design/124657/Facebook-or-System-Design-or-A-web-crawler-that-will-crawl-Wikipedia
