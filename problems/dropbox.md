@@ -13,6 +13,10 @@
 ## Data Model
 ## High Level System Design
 ## Deep Dive
+### Upload flow
+### Download Flow
+### Support Large Files
+### Ensure file security
 ## References
 * https://www.hellointerview.com/learn/system-design/answer-keys/dropbox
 * https://github.com/preslavmihaylov/booknotes/tree/master/system-design/system-design-interview/chapter16

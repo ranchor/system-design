@@ -53,14 +53,19 @@ Stores information about each domain's crawl status and crawl delay.
 | robots_txt_url    | String        | S3 URL path to the saved robots.txt file             |
 
 ### URL Metadata Table (NoSQL)
-Stores metadata about each URL, including deduplication hashes.
+Stores metadata about each URL, including deduplication hashes and additional information.
 
-| Field        | Type          | Description                                |
-|--------------|---------------|--------------------------------------------|
-| url          | String (PK)   | The URL of the web page                    |
-| checksum     | String        | Checksum/hash of the content for deduplication |
-| simhash      | String        | SimHash for near-duplicate detection       |
-| last_crawled | DateTime      | The last time this URL was crawled         |
+| Field            | Type          | Description                                |
+|------------------|---------------|--------------------------------------------|
+| url_id           | String (PK)   | The unique identifier for the URL (partition key) |
+| url_info         | String        | Additional information about the URL (e.g., title, metadata) |
+| domain_info      | String        | Information about the domain (e.g., domain name, domain metadata) |
+| checksum         | String        | Checksum/hash of the content for deduplication |
+| simhash          | String        | SimHash for near-duplicate detection       |
+| last_crawled_time| DateTime      | The last time this URL was crawled         |
+| html_s3_path     | String        | S3 path to the stored HTML content         |
+| content_s3_path  | String        | S3 path to the extracted text content      |
+
 
 ## High Level System Design
 ![](../resources/problems/web_crawler/web_crawler.png)
@@ -96,15 +101,18 @@ A web crawler should avoid sending too many requests to the same host in a short
 
 ![](../resources/problems/web_crawler/mapping-table.png)
 ### HTML Downloader
-#### How to deal with different error code during fetch of url ?
-404(non found), 503(retry), 429(retry), 401 & 403(unauthorzied)
-Blacklist NO SQL store - write in case of 404, 401 and 403
-Worker can put into DLQ during 5xx or 401, 403 error
-#### What about if we fail to fetch a URL?
-SQS with Exponential Backoff: Retry logic with backoff, moving to a dead-letter queue after several retries.
-#### What happens if a downloader goes down?
-URLs stay in the queue until confirmed fetched, handled by another crawler if necessary/ SQS's built-in support for retries and exponential backoff and the ease with which visibility timeouts can be configured, we'll use SQS for our system.
-#### Ensure politeness
+#### What About if We Fail to Fetch a URL or downloader goes down ?
+- Use SQS with Exponential Backoff: Implement retry logic with backoff, moving to a dead-letter queue after several retries.
+- Ensure URLs stay in the queue until confirmed fetched, handled by another crawler if necessary.
+#### How to Deal with Different Error Codes During Fetch of URL?
+- **404 (Not Found), 401 (Unauthorized), 403 (Forbidden):**
+  - Add to Blacklist NoSQL store to avoid re-crawling.
+- **429 (Too Many Requests), 503 (Service Unavailable):**
+  - Retry with exponential backoff.
+- **5xx Errors:**
+  - Put URL into Dead Letter Queue (DLQ) for manual review or later retry.
+
+#### Ensure Politeness
 - Implement rate limiting per domain using redis
 - Use user-agent strings to identify the crawler.
 - We also implement Crawl-delay
@@ -144,6 +152,11 @@ To ensure politeness and adhere to robots.txt, we will need to do two things:
 #### DNS
 - **DNS Caching:** Cache DNS lookups to reduce requests.
 - **Multiple DNS Providers:** Distribute load across providers.
+
+#### Extract Root Domain from URL
+* Extracting the root domain from a URL involves parsing the URL to obtain the hostname and then identifying the registered domain, which includes the second-level domain (SLD) and the top-level domain (TLD). This process is crucial in web crawling, data analysis, and security applications where you need to group or filter data by domain.
+* `tldextract` is a Python library that uses the public suffix list to accurately extract the domain components from a URL.
+
 ### Content Parser
 #### Content Dedupe check
 - **Approaches:**
@@ -169,8 +182,45 @@ SimHash is a technique used for near-duplicate detection in documents. The idea 
 4. **Summing:** Sum the weighted bit vectors. For each bit position, if the sum is positive, set the bit to 1; otherwise, set it to 
 5. **Result:** The resulting bit vector is the SimHash of the document. Documents with similar SimHashes are likely to be near-duplicates.
 
+### URLs Fetchers
+#### URL Extraction
+URL extraction is the process of identifying and extracting hyperlinks (URLs) from a web page's content. 
+This is a crucial step in web crawling, allowing the crawler to discover and traverse new web pages.
+1. **Parse the HTML Content**:
+   - Use an HTML parser to parse the web page content stored in s3
+   - Libraries like BeautifulSoup (Python) or jsoup (Java) are commonly used for this purpose.
 
-### URL Seen Checker
+1. **Extract URLs**:
+   - Identify and extract anchor tags (`<a>`), image tags (`<img>`), and other elements containing URLs.
+   - Extract the `href` attribute from anchor tags and the `src` attribute from image tags.
+
+1. **Normalize URLs**:
+   - Convert relative URLs to absolute URLs using the base URL of the web page.
+   - Handle URL encoding and ensure URLs are in a standard format.
+
+1. **Filter URLs**:
+   - Apply URL filtering rules to exclude unwanted URLs (e.g., binary files, blacklisted domains).
+   - Ensure the extracted URLs are valid and adhere to the desired criteria.
+
+1. **Deduplicate URLs**:
+   - Remove duplicate URLs to avoid redundant crawling.
+   - Use a data structure like a set or a bloom filter to track seen URLs.
+
+#### URL Filtering
+1. **Check URL Validity**:
+   - Ensure the URL is properly formatted and not malformed.
+2. **Respect `robots.txt`**:
+   - Check the site's `robots.txt` file to respect crawl directives.
+3. **Filter Out Unwanted URLs**:
+   - Remove URLs pointing to binary files (e.g., `.jpg`, `.png`, `.pdf`).
+   - Exclude URLs from blacklisted domains or containing specific query parameters.
+4. **Detect and Avoid Crawler Traps**:
+   - Monitor for excessive links from the same domain.
+   - Set limits on the number of URLs per domain to avoid infinite loops.
+5. **Content-Type Filtering**:
+   - Ensure the URL points to HTML content by checking the `Content-Type` header.
+
+#### URL Seen Checker
 - **Approaches:**
   1. **Hash Set:**
      - Store all seen URLs in a hash set.
@@ -206,12 +256,39 @@ A Bloom filter is a space-efficient probabilistic data structure used to test wh
 ### Detect and avoid problematic content
 
 #### Handle Crawler/Spider traps
-#### Handler Data noise
+- **Detection:**
+  - Monitor for excessive links from the same domain.
+  - Set a maximum number of URLs per domain.
+  - Track crawl rate and detect anomalies.
+- **Avoidance:**
+  - Use heuristics to identify and avoid crawler traps.
+  - Implement timeouts and depth limits.
+### Handle Data Noise
+- Filter out irrelevant content using heuristics and machine learning.
+- Use content analysis to determine the relevance of the extracted text.
+- Regularly update filtering rules based on feedback and new findings.
 
 ### Handle dynamic content
 - Use headless browsers (e.g., Puppeteer) to handle JavaScript-rendered pages.
-### Handle large files
-Use Content-Length header to skip overly large files.
+
+### Handle Large Files
+**Example:** 
+- Use the Content-Length header to skip overly large files.
+- Set a maximum file size limit (e.g., 10 MB) and ignore files exceeding this limit.
+- Use streaming download and parsing to handle large files without overwhelming memory.
+
+### Deal with Copyright/Legal Compliance Issues?
+- **Respect robots.txt and Terms of Service:**
+  - Ensure the crawler adheres to the site's robots.txt file and terms of service.
+- **Content Attribution:**
+  - Store metadata to attribute content to the original source.
+- **Legal Review:**
+  - Conduct regular legal reviews of crawling practices and stored data.
+- **Request Handling:**
+  - Implement a system to handle takedown requests and other legal inquiries.
+
+
+### Extract root domain from URL 
 ### Scale the systems
 - Use distributed crawling with multiple worker nodes.
 - Implement distributed storage solutions like HDFS or cloud storage.
