@@ -85,11 +85,11 @@
 - **[Design a object storage system / S3 / Dropbox]()**
 - **[Design Distributed Locking Service]()**
 - **[Design Distributed Counters]()**
+- [Design notification system](https://github.com/ranchor/system-design/blob/main/problems/notification_system.md)
 
 ### Batch Jobs
 - [Design Job Scheduler/Distributed Task Scheduler](https://github.com/ranchor/system-design/blob/main/problems/distributed_job_scheduler.md)
 - [Design Web Crawler](https://github.com/ranchor/system-design/blob/main/problems/web_crawler.md)
-- **[Design notification system](https://github.com/ranchor/system-design/blob/main/problems/notification_system.md)**
 - [Design LeetCode](https://github.com/ranchor/system-design/blob/main/problems/leetcode.md)
 - [Design Price Alert Online System](https://github.com/ranchor/system-design/blob/main/problems/price_tracker.md)
 

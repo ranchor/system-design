@@ -343,3 +343,4 @@ Tracking events such as open rates and click rates is crucial for measuring the 
 * https://www.linkedin.com/pulse/notification-system-design-rajiv-srivastava/
 * https://www.codekarle.com/system-design/Notification-system-design.html
 * https://medium.com/double-pointer/system-design-interview-notification-service-86cb5c266218
+* https://www.linkedin.com/posts/alexxubyte_systemdesign-coding-interviewtips-activity-7150527952118575105-Y5Bu/
