@@ -269,9 +269,6 @@ Ranked retrieval is a fundamental approach in information retrieval systems, add
    - Present the top-ranked documents to the user.
 
 
-
-
-
 ### Elastic Search
 Lucene does all the above-mentioned things, a library used internally by elastic search. Elasticsearch converts Lucene into a distributed system/search engine for scaling horizontally. Elasticsearch also provides other features like thread-pool, queues, node/cluster monitoring API, data monitoring API, Cluster management, etc. In short, Elasticsearch extends Lucene and provides additional features beyond it.
 

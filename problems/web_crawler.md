@@ -288,7 +288,6 @@ A Bloom filter is a space-efficient probabilistic data structure used to test wh
   - Implement a system to handle takedown requests and other legal inquiries.
 
 
-### Extract root domain from URL 
 ### Scale the systems
 - Use distributed crawling with multiple worker nodes.
 - Implement distributed storage solutions like HDFS or cloud storage.
