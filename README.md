@@ -89,7 +89,7 @@
 ### Batch Jobs
 - [Design Job Scheduler/Distributed Task Scheduler](https://github.com/ranchor/system-design/blob/main/problems/distributed_job_scheduler.md)
 - [Design Web Crawler](https://github.com/ranchor/system-design/blob/main/problems/web_crawler.md)
-- **[Design notification system]()**
+- **[Design notification system](https://github.com/ranchor/system-design/blob/main/problems/notification_system.md)**
 - [Design LeetCode](https://github.com/ranchor/system-design/blob/main/problems/leetcode.md)
 - [Design Price Alert Online System](https://github.com/ranchor/system-design/blob/main/problems/price_tracker.md)
 
@@ -102,16 +102,16 @@
 - [Design Uber](https://github.com/ranchor/system-design/blob/main/problems/uber.md)
 - [Design Google Maps]()
 - [Design Metrics Monitoring and Alerting System]()
-- [Design Ad-Click Aggregration]()
-- [Design Trending Topics (Twitter)/Top K/Heavy Hitters]()
-- [Design Live Comments]()
+- [Design Ad-Click Aggregration](https://github.com/ranchor/system-design/blob/main/problems/ad_click_aggregration.md)
+- [Design Trending Topics (Twitter)/Top K/Heavy Hitters](https://github.com/ranchor/system-design/blob/main/problems/top_k.md)
+- [Design Live Comments](https://github.com/ranchor/system-design/blob/main/problems/live_comment.md)
 
 ### User Requests Traffic
-- [Design a Ticketmaster]()
-- [Design Dropbox]()
+- [Design a Ticketmaster](https://github.com/ranchor/system-design/blob/main/problems/ticketmaster.md)
+- [Design Dropbox/Google Drive]()
 - [Design Instagram]()
-- [Design a Search AutComplete system]()
-- [Design a Google Search]()
+- [Design a Search AutoComplete system](https://github.com/ranchor/system-design/blob/main/problems/typehead_suggestion.md)
+- [Design a Google Search](https://github.com/ranchor/system-design/blob/main/problems/distributed_search.md)
 - [Design a Local Delivery]()
 - [Design a payment system]()
 

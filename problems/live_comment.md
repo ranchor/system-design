@@ -50,9 +50,35 @@ Header: JWT | SessionToken
 GET /comments/:liveVideoId
 ```
 ## Data Model
-* Comments Table
-* Video Table
+* Comments Table (NoSQL - Cassandra)
+This table stores the comments made on live videos.
+```
+{
+  "comment_id": "string",           // Unique identifier for the comment
+  "live_video_id": "string",        // Partition Key: Reference to the associated live video
+  "user_id": "string",              // Reference to the user who commented
+  "message": "string",              // The content of the comment
+  "timestamp": "ISODate"            // Sort Key:The time when the comment was made
+}
+```
+* Video Table (NoSQL - Cassandra)
+This table stores information about live videos.
+```
+{
+  "live_video_id": "string",        // Primary Key: Unique identifier for the live video
+  "title": "string",                // Title of the live video
+  "description": "string",          // Description of the live video
+  "user_id": "string",              // Reference to the creator user
+  "start_time": "ISODate",          // The start time of the live video
+  "end_time": "ISODate"             // The end time of the live video
+}
+```
 * Users Table
+- **Primary Key**: `user_id` (BIGINT) - Unique identifier for the user
+- `username` (VARCHAR) - Username of the user
+- `email` (VARCHAR) - Email of the user
+- `password_hash` (VARCHAR) - Hashed password for authentication
+- `created_at` (TIMESTAMP) - The time when the user account was created
 ## High Level System Design
 
 ![](../resources/problems/live_comment/live_comments.png)
