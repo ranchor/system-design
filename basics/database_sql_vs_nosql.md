@@ -159,6 +159,87 @@
 # Data Replication
 # Data Partitioning/Sharding
 
+# Table topology
+Table topology refers to the design and arrangement of tables in a database to optimize for various aspects such as performance, scalability, consistency, and availability. Here are some common table topologies used in database design:
+
+## 1. **Single Table Design**
+- **Description:** All data related to a particular entity is stored in a single table.
+- **Use Case:** Simple applications with low complexity and fewer relationships between entities.
+- **Pros:** Easy to implement and manage, simple queries.
+- **Cons:** Not scalable for complex applications, can lead to large tables and performance issues.
+
+## 2. **Star Schema**
+- **Description:** Central fact table connected to multiple dimension tables.
+- **Use Case:** Data warehousing and OLAP systems.
+- **Pros:** Simplifies queries and improves performance, easy to understand.
+- **Cons:** Redundancy in dimension tables, not ideal for many-to-many relationships.
+
+## 3. **Snowflake Schema**
+- **Description:** Extension of star schema where dimension tables are normalized into multiple related tables.
+- **Use Case:** Data warehousing with more complex relationships.
+- **Pros:** Reduces redundancy, saves storage space.
+- **Cons:** More complex queries, increased number of joins.
+
+## 4. **Normalized Schema**
+- **Description:** Data is divided into multiple related tables to eliminate redundancy.
+- **Use Case:** OLTP systems where data integrity and efficient updates are crucial.
+- **Pros:** Reduces data redundancy, improves data integrity.
+- **Cons:** Complex queries due to multiple joins, potential performance issues with read-heavy workloads.
+
+## 5. **Denormalized Schema**
+- **Description:** Data is combined into fewer tables to reduce the number of joins.
+- **Use Case:** Read-heavy applications where query performance is critical.
+- **Pros:** Faster read performance, simpler queries.
+- **Cons:** Increases data redundancy, more storage space required, potential data inconsistency.
+
+## 6. **Key-Value Store**
+- **Description:** Data is stored as key-value pairs.
+- **Use Case:** Simple data retrieval by key, caching, session management.
+- **Pros:** Fast retrieval, easy to scale horizontally.
+- **Cons:** Limited query capabilities, not suitable for complex queries.
+
+## 7. **Document Store**
+- **Description:** Data is stored as documents (e.g., JSON, BSON).
+- **Use Case:** Flexible schema requirements, content management systems, logging.
+- **Pros:** Flexible schema, easy to handle complex and nested data structures.
+- **Cons:** Can lead to data redundancy, complex queries may be less efficient.
+
+## 8. **Column-Family Store**
+- **Description:** Data is stored in columns rather than rows.
+- **Use Case:** Analytical applications, wide-column data storage.
+- **Pros:** Efficient storage and retrieval of sparse data, fast read and write operations.
+- **Cons:** Complex schema design, not suitable for highly relational data.
+
+## 9. **Graph Database**
+- **Description:** Data is stored in nodes and edges representing entities and their relationships.
+- **Use Case:** Applications with complex relationships, social networks, recommendation systems.
+- **Pros:** Efficiently handles complex relationships and graph traversal queries.
+- **Cons:** Can be complex to design and query, not suitable for simple data models.
+
+## 10. **Time-Series Database**
+- **Description:** Data is stored with a focus on time-based entries.
+- **Use Case:** Monitoring systems, IoT data, financial tickers.
+- **Pros:** Optimized for time-based queries and aggregations, efficient data compression.
+- **Cons:** Limited use case, may not be suitable for general-purpose data storage.
+
+## 11. **Hierarchical Database**
+- **Description:** Data is organized in a tree-like structure.
+- **Use Case:** Applications with a strict parent-child relationship, such as organizational charts.
+- **Pros:** Fast navigation and retrieval of hierarchical data.
+- **Cons:** Limited flexibility, difficult to manage many-to-many relationships.
+
+## 12. **Distributed Table Topology**
+- **Description:** Data is distributed across multiple nodes or regions to achieve high availability and scalability.
+- **Use Case:** Large-scale applications requiring high availability, fault tolerance, and low latency.
+- **Pros:** Improved scalability and fault tolerance, reduced latency for geographically distributed users.
+- **Cons:** Increased complexity in data consistency and coordination, potential for network partitions.
+
+## 13. **Sharded Table Topology**
+- **Description:** Data is partitioned across multiple shards or databases based on a sharding key.
+- **Use Case:** High-throughput applications, large datasets.
+- **Pros:** Horizontal scalability, distributes load evenly across shards.
+- **Cons:** Complex shard management, potential hot spots if sharding key is not chosen correctly.
+
 
 # References
 * [grokking-the-system-design-interview](https://www.educative.io/courses/grokking-the-system-design-interview/YQlK1mDPgpK)

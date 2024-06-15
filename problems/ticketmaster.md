@@ -85,6 +85,18 @@ Book Events (Write)
 | `booking_date`| `TIMESTAMP`| `DEFAULT CURRENT_TIMESTAMP`  |
 | `status`     | `VARCHAR`   | `NOT NULL` (completed, pending, cancelled) |
 
+### Caching Layer - Redis
+
+**Session Management and Seat Locking**
+- Key: seat_id
+- TTL: 10 minutes for seat lock
+
+### Search Index - Elasticsearch
+
+**Event Index**
+- Indexed fields: name, category, description, date, venue
+
+
 ## High Level Design
 
 ![](../resources/problems/ticketmaster/ticketmasterv2.png)
