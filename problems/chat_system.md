@@ -1,5 +1,8 @@
 ## Problem Statement
-Design a whatsapp, facebook messenger etc.
+Design a messaging system like WhatsApp or Facebook Messenger.
+
+
+## Clarification Questions to Interviewer 
 
 ## Requirements
 ### Functional Requirements
@@ -92,6 +95,14 @@ downloadFile(user_id, file_id)
 
 ## High Level System Design and Algorithm
 
+![](../resources/problems/chat_system/whatsapp.png)
+
+### Three Types of High Level Components
+* Stateless Services: These are traditional public-facing request/response HTTP Based services, used to manage the login, signup, user profile, groups information, asset delivery etc. They sit behind a load balancer whose job is to route requests to the correct services based on the request paths.
+* Stateful Service: Chat service service is stateful because each client maintains a persistent network connection to a chat server. In this service, a client normally does not switch to another chat server as long as the server is still available
+* Third-Party Integration: Used for push notifications to inform users when new messages arrived, even when the app is not running.
+
+## Deep Dive 
 ### Communication Protcols to Use
 #### HTTP Polling
 Client periodically asks the server if there are messages available
@@ -115,53 +126,72 @@ In long polling, a client holds the connection open until there are actually new
 It is a persistent abd bidirectional communication protocol that enables real-time communication between the client and server over a single, long-lived connection, providing the lowest latency. It is the most common solution for sending async updates from server to client. It starts its life as a HTTP connection and could be “upgraded” via some well-defined handshake to a WebSocket connection
 ![](../resources/problems/chat_system/websocket.png)
 
-### HLD
-![](../resources/problems/chat_system/chat_system_1.png)
-
-#### Three major Categories of components
-* Stateless Services: These are traditional public-facing request/response HTTP Based services, used to manage the login, signup, user profile, groups information, asset delivery etc. They sit behind a load balancer whose job is to route requests to the correct services based on the request paths.
-* Stateful Service: Chat service service is stateful because each client maintains a persistent network connection to a chat server. In this service, a client normally does not switch to another chat server as long as the server is still available
-* Third-Party Integration: Used for push notifications to inform users when new messages arrived, even when the app is not running.
-
-#### Send or Receive Direct Message 
-1. **User A Initiates Message**:
-   - User A communicates with its WebSocket server.
-   - The server identifies the WebSocket of User B via the WebSocket manager.
-
-2. **WebSocket Server Actions**:
-   - If User B is online, WebSocket server communicates with User B's server through the manager.
-   - Message is stored in Mnesia database for processing in FIFO order.
-
-3. **Delivery to Receiver**:
-   - Message is sent to User B's WebSocket server.
-   - Upon delivery, messages are deleted from the database.
-
-4. **Communication Establishment**:
-   - WebSocket server establishes communication between User A and User B.
-
-5. **Offline Message Handling**:
-   - If User B is offline, messages are stored in Mnesia database.
-   - Messages are delivered upon User B's online status or deleted after 30 days.
-
-6. **WebSocket Manager Optimization**:
-   - WebSocket servers cache recent conversation data.
-   - Minimizes latency by avoiding excessive calls to WebSocket manager.
-   - If users are on the same server, WebSocket manager calls are bypassed.
-
-#### Support for Group Messages
-1. **Sending a Message to a Group**:
-   - User U1 wants to send a message to Group G1.
-   - WebSocket Handler (WSH1) communicates with Message Service to store the message (M3) in Cassandra.
-   - Message Service interacts with Kafka to save M3 with instructions for G1.
-
-2. **Message Handling Process**:
-   - Kafka interacts with Group Message Handler.
-   - Group Message Handler listens to Kafka for group messages.
-   - Group Message Handler communicates with Group Service to retrieve group members of G1.
-   - Message is delivered to all group members individually through WebSocket Handlers.
 
 
-####  Send or receive media files(Asset Delivery)
+### Send or Receive Direct Message(DM) 
+1. **User A Sends a Message to User B**:
+   - User A sends a message to User B through WebSocket Server 1.
+   - The WebSocket Server 1 generates a unique message ID using the Twitter Snowflake approach to ensure unique and sortable IDs.
+
+2. **Message Delivery for Online Users**:
+   - **Check Online Status**: WebSocket Server 1 checks its cache to determine if User B is online.
+   - **Query Zookeeper**: If necessary, WebSocket Server 1 queries Zookeeper to identify which WebSocket server User B is connected to.
+   - **Direct Delivery**: If User B is online, the message is sent directly to User B via WebSocket Server 2.
+
+3. **Message Delivery for Offline Users**:
+   - **Store Message**: If User B is offline, the message is persisted in the Message DB.
+   - **Trigger Push Notification**: The system triggers push notifications to inform User B of new messages.
+
+4. **Broadcast to Kafka**:
+   - **Publish Message**: The WebSocket Server 1 publishes the message to the Chat Kafka topic partitioned by `user_id`.
+   - **Ensure Ordering**: This ensures message ordering and durability.
+
+5. **Message Sync Service**:
+   - **Consume Messages**: The Message Sync Service consumes messages from Kafka and processes them.
+   - **Store Messages**: It stores messages in the Message DB.
+   - **Handle Read Receipts**: Once User B receives the message, WebSocket Server 2 updates the read receipt status in the Message DB.
+   - **Update Last Seen**: The Last Seen Service updates the online status in the Users DB.
+
+
+### Handling Offline Users
+
+1. **Message Storage**:
+   - **Short-term Storage in Kafka**: Messages are stored in the user's Kafka topic for up to 24 hours.
+   - **Long-term Storage in Database**: After 24 hours, the Message Sync Service moves messages to the Message DB.
+
+2. **Push Notifications**:
+   - The Message Sync Service triggers push notifications to inform offline users of new messages.
+
+3. **Subscribing to Kafka Topics**:
+   - **Subscribe to User ID Topic**: Each user subscribes to their user ID topic on Kafka to retrieve messages upon coming online. Persist older messages on a particular partition id for the user id if not broadcasted.
+   - **Message Retrieval**: The Message Sync Service processes these messages and delivers them to the users.
+
+### Support for Group Messages
+
+1. **User U1 Sends a Message to Group G1**:
+   - User U1 sends a message to Group G1 through WebSocket Server 1.
+   - The WebSocket Server 1 generates a unique message ID using the Twitter Snowflake approach.
+
+2. **Retrieve Group Members**:
+   - **Query Group Service**: WebSocket Server 1 queries the Group Service to get the list of user IDs in Group G1.
+   
+3. **Message Delivery for Group Members**:
+   - **Check Online Status**: WebSocket Server 1 checks if each group member is online.
+
+
+   - **Direct Delivery**: For online members, WebSocket Server 1 sends the message directly to their respective WebSocket servers.
+   - **Offline Members**: For offline members, the message is stored in Kafka for those user IDs and will be broadcast later.
+
+4. **Broadcast to Kafka**:
+   - **Publish Message**: The message is published to the Chat Kafka topic partitioned by `user_id` for all group members.
+   
+5. **Message Sync Service**:
+   - **Consume Messages**: The Message Sync Service consumes messages from Kafka.
+   - **Store Messages**: It stores messages in the Message DB.
+   - **Broadcast to Group Members**: It retrieves group membership information and broadcasts messages to all group members through their respective WebSocket servers.
+
+
+###  Send or receive media files(Asset Delivery)
 1. **Sending Process**:
    - User U3 uploads content (image, file, video) to a server and receives a unique content ID.
    - U3 sends the content ID to User U2.
@@ -180,7 +210,7 @@ It is a persistent abd bidirectional communication protocol that enables real-ti
    - Multiple Hashes: Multiple hashing algorithms are used to reduce collision risk.
    - Content Upload: If the hash already exists, content is not re-uploaded; existing ID is sent to U2.
 
-#### Message synchronization across multiple devices
+### Message synchronization across multiple devices
 - When User A logs in to the chat app with her phone, it establishes a WebSocket connection with `Chat server 1`. 
 - Similarly, there is a connection between the laptop and `Chat server 1`.
 - Each device maintains a variable called `cur_max_message_id`, which keeps track of the latest message ID on the device. 
@@ -217,10 +247,24 @@ It is a persistent abd bidirectional communication protocol that enables real-ti
    - Example Format: `SNOWFLAKE_ID`
 
 
+### Online Presence
+Presence servers manage the online/offline indication in chat applications.
+
+Whenever the user logs in, their status is changed to "online":
+![](../resources/problems/chat_system/user-login-online.png)
+Once the user send a logout message to the presence servers (and subsequently disconnects), their status is changed to "offline":
+One caveat is handling user disconnection. A naive approach to handle that is to mark a user as "offline" when they disconnect from the presence server. This makes for a poor user experience as a user could frequently disconnect and reconnect to presence servers due to poor internet.
+![](../resources/problems/chat_system/user-logout-offline.png)
+To mitigate this, we'll introduce a heartbeat mechanism - clients periodically send a heartbeat to the presence servers to indicate online status. If a heartbeat is not received within a given time frame, user is marked offline:
+![](../resources/problems/chat_system/user-heartbeat.png)
+This is effective for small group chats. WeChat uses a similar approach and its user group is capped to 500 users.
+
+If we need to support larger groups, a possible mitigation is to fetch presence status only when a user enters a group or refreshes the members list.
+
 ## Open Questions
 * Practice one : https://app.excalidraw.com/import?excalidraw=0hgldWbhbSBs,pqmR9hnrv2oeyJeoxH9Uqg
 ## References
-* Alex Wu - Vol1 - [Chapter 12](https://bytebytego.com/courses/system-design-interview/design-a-chat-system)
+* Alex Wu - Vol1 - [Chapter 12](https://github.com/preslavmihaylov/booknotes/tree/master/system-design/system-design-interview/chapter13)
 * https://medium.com/@m.romaniiuk/system-design-chat-application-1d6fbf21b372
 * https://leetcode.com/discuss/study-guide/2066150/chat-system-design-complete-guide
 * https://www.geeksforgeeks.org/designing-whatsapp-messenger-system-design/

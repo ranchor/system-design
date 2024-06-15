@@ -116,7 +116,7 @@ There is always likelihood of missed events, regardless of the watermark's size.
 
 We can instead resolve such inconsistencies by doing end-of-day reconciliation.
 
-## Aggregation window
+### Aggregation window
 There are four types of window functions:
  * Tumbling (fixed) window
  * Hopping window
