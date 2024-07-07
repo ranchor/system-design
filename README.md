@@ -93,8 +93,7 @@
 - [Design LeetCode](https://github.com/ranchor/system-design/blob/main/problems/leetcode.md)
 - [Design Price Alert Online System](https://github.com/ranchor/system-design/blob/main/problems/price_tracker.md)
 
-
-### Streaming / Continuous Data Flow
+### Streaming/Continuous Data Flow
 - [Design YouTube](https://github.com/ranchor/system-design/blob/main/problems/youtube.md)
 - [Design Chat System/messenger](https://github.com/ranchor/system-design/blob/main/problems/chat_system.md)
 - [Design News Feed](https://github.com/ranchor/system-design/blob/main/problems/newsfeed_system.md)
@@ -105,16 +104,22 @@
 - [Design Ad-Click Aggregration](https://github.com/ranchor/system-design/blob/main/problems/ad_click_aggregration.md)
 - [Design Trending Topics (Twitter)/Top K/Heavy Hitters](https://github.com/ranchor/system-design/blob/main/problems/top_k.md)
 - [Design Live Comments](https://github.com/ranchor/system-design/blob/main/problems/live_comment.md)
+- [Design Google Docs](https://github.com/ranchor/system-design/blob/main/problems/google_docs.md)
 
 ### User Requests Traffic
 - [Design a Ticketmaster](https://github.com/ranchor/system-design/blob/main/problems/ticketmaster.md)
-- [Design Dropbox/Google Drive]()
-- [Design Instagram]()
+- [Design a Hotel Reservation System](https://github.com/ranchor/system-design/blob/main/problems/hotel_reservation_system.md)
+- [Design Dropbox/Google Drive/File Sharing Service](https://github.com/ranchor/system-design/blob/main/problems/dropbox.md)
+- [Design Google Photos/Photos Storage](https://github.com/ranchor/system-design/blob/main/problems/google_photos.md)
+- [Design Instagram](https://github.com/ranchor/system-design/blob/main/problems/instagram.md)
 - [Design a Search AutoComplete system](https://github.com/ranchor/system-design/blob/main/problems/typehead_suggestion.md)
 - [Design a Google Search](https://github.com/ranchor/system-design/blob/main/problems/distributed_search.md)
 - [Design a Local Delivery]()
-- [Design a payment system]()
-
+- [Design a Shopping Cart](https://github.com/ranchor/system-design/blob/main/problems/shopping_cart.md)
+- [Design a Inventory Management System](https://github.com/ranchor/system-design/blob/main/problems/inventory_management.md)
+- [Design a Payment System](https://github.com/ranchor/system-design/blob/main/problems/payment_gateway.md)
+- [Design a Ecommerce Website](https://github.com/ranchor/system-design/blob/main/problems/ecommerce.md)
+- [Design a digital wallet](https://github.com/ranchor/system-design/blob/main/problems/digital_wallet.md)
 
 
 ## 🗞️ Must-Read Distributed Systems Papers
