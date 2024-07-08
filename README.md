@@ -29,7 +29,7 @@
 - [Databases](https://newsletter.ashishps.com/p/15-types-of-databases)
 - **[SQL vs NoSQL](https://github.com/ranchor/system-design/blob/main/basics/database_sql_vs_nosql.md)**
 - [Database Index](https://newsletter.ashishps.com/p/a-detailed-guide-on-database-indexes)
-- **[Data Replication](https://redis.com/blog/what-is-data-replication/)**
+- **[Data Replication](https://github.com/ranchor/system-design/blob/main/basics/data_replication.md)**
 - **[Data Redundancy](https://www.egnyte.com/guides/governance/data-redundancy)**
 - [Data Partitioning](https://github.com/ranchor/system-design/blob/main/basics/data_partitioning.md)
 - **[Transactions](https://github.com/ranchor/system-design/blob/main/basics/transactions.md)**
