@@ -25,3 +25,4 @@ Design a system that provides real-time analytics on the most popular (Top-K) Yo
 ## Deep Dive
 ## References
 * https://www.hellointerview.com/learn/system-design/answer-keys/top-k
+* https://medium.com/@techturtles51/system-design-interview-top-k-heavy-hitters-ab49640f3ec9
