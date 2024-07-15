@@ -5,22 +5,23 @@ Design a job/task scheduler that runs jobs/task at a scheduled interval
 
 ## Requirements
 ### Functional Requirements
-* **Submit tasks**: The system should allow the users to submit their tasks for execution.
-* **Allocate resources**: The system should be able to allocate the required resources to each task.
-* **Remove tasks:** The system should allow the users to cancel the submitted tasks.
-* **Monitor task execution:** The task execution should be adequately monitored and rescheduled if the task fails to execute.
-* **Release resources**: After successfully executing a task, the system should take back the resources assigned to the task.
-* **Show task status**: The system should show the users the current status of the task.
-* **Task can also have priority**.  Task with higher priority should be executed first than lower priority
+* **Submit tasks**: Allow users to submit tasks for execution.
+* **Allocate resources**: Allocate required resources to each task.
+* **Remove tasks**: Allow users to cancel submitted tasks.
+* **Monitor task execution**: Monitor task execution and reschedule if tasks fail.
+* **Release resources**: Release resources after task execution.
+* **Show task status**: Display current task status to users.
+* **Task priority**: Execute higher priority tasks before lower priority ones.
+
 #### Below the line (out of scope)
 
 ### Non-Functional Requirements
-* **Availability**:  system should always be available for users to add/view the task
+* **Availability**:  Always available for users to add/view tasks.
 * **Scalability**: Thousands or even millions of tasks can be scheduled and run per day
-* **Durability**: Tasks must not get lost -> we need to persist tasks
-* **Reliability**: Tasks must not be executed much later than expected or dropped -> we need a fault-tolerant system
-* Jobs must not be executed multiple times (or such occurences should be kept to a minimum)
-* **Bounded waiting time**: This is how long a task needs to wait before starting execution. We must not execute tasks much later than expected. Users shouldn’t be kept on waiting for an infinite time. 
+* **Durability**: Persist tasks to avoid loss.
+* **Reliability**: Ensure tasks are executed on time and not dropped.
+* **Idempotency** Jobs must not be executed multiple times (or such occurences should be kept to a minimum)
+* **Bounded waiting time**: Avoid infinite waiting times for task execution.
 
 #### Below the line (out of scope)
 
@@ -37,66 +38,72 @@ Design a job/task scheduler that runs jobs/task at a scheduled interval
     * listJobs(api_key, pagination_token)
 
 ## Data Model Design
-#### Job Table
-| Attribute                    | Type   |
-|------------------------------|--------|
-| job_id (partition key)       | uuid   |
-| user_id                      | uuid   |
-| job_name                     | string |
-| job_description              | string |
-| creation_time                | date   |
-| updated_time                 | date   |
-| is_recurring                 | boolean|
-| job_interval                 | int    |
-| job_priority                 | string |
-| job_status                   | string |
-| uploads_s3_path              | string |
+### Job Table
+| Attribute        | Type   |
+|------------------|--------|
+| job_id           | uuid   |
+| user_id          | uuid   |
+| job_name         | string |
+| job_description  | string |
+| creation_time    | date   |
+| updated_time     | date   |
+| is_recurring     | boolean|
+| job_interval     | int    |
+| job_priority     | string |
+| uploads_s3_path  | string |
 
 **Global Secondary Index (GSI):**
 - **Index Name:** UserJobIndex
 - **Partition Key:** user_id
 
-#### Task Schedule Table
-| Attribute                    | Type   |
-|------------------------------|--------|
-| next_execution_time (partition key) | date   |
-| job_id (sort key)                   | uuid   |
-| task_id                             | uuid   |
-| task_status                         | string |
-| result_location                     | string |
-| current_retries                     | int    |
-| max_retries                         | int    |
-| execution_status                    | string |
-| creation_time                       | date   |
-| updated_time                        | date   |
-| task_priority                       | string |
+### Task Schedule Table
+| Attribute            | Type   |
+|----------------------|--------|
+| next_execution_time  | date   |
+| job_id               | uuid   |
+| task_id              | uuid   |
+| schedule_status      | string |
+| result_location      | string |
+| max_retries          | int    |
+| creation_time        | date   |
+| updated_time         | date   |
+| task_priority        | string |
+| uploads_s3_path      | string |
+
+**Possible Values for `schedule_status`:**
+- `scheduled`
+- `pending`
+- `running`
+- `completed`
+- `errored`
 
 **Global Secondary Index (GSI):**
 - **Index Name:** JobIdIndex
 - **Partition Key:** job_id
 
-#### Task Execution History Table
-| Attribute                    | Type   |
-|------------------------------|--------|
-| job_id (partition key)       | uuid   |
-| execution_time (sort key)    | date   |
-| task_id                      | uuid   |
-| task_status                  | string |
-| result_location              | string |
-| execution_status             | string |
-| retries                      | int    |
-| retry_count                  | int    |
-| results_s3_path              | string |
-| creation_time                | date   |
-| updated_time                 | date   |
+### Task Execution History Table
+| Attribute        | Type   |
+|------------------|--------|
+| job_id           | uuid   |
+| schedule_time    | date   |
+| task_id          | uuid   |
+| task_status      | string |
+| result_location  | string |
+| execution_status | string |
+| max_retries      | int    |
+| retry_count      | int    |
+| results_s3_path  | string |
+| creation_time    | date   |
+| updated_time     | date   |
+
+- **task_status:** Represents the overall status of the task in the system. This could include states such as "pending," "scheduled," "in_progress," "completed," "errored", or "cancelled." It indicates the current lifecycle stage of the task.
+  
+- **execution_status:** Represents the status of the task during its execution phase. This could include states such as "not_started," "claimed", "running," "success," "failure," or "retrying." It specifically tracks the progress and outcome of the task while it is being executed.
 
 **Global Secondary Index (GSI):**
 - **Index Name:** TaskIdIndex
 - **Partition Key:** task_id
 
-- **task_status:** Represents the overall status of the task in the system. This could include states such as "pending," "scheduled," "in_progress," "completed," "errored", or "cancelled." It indicates the current lifecycle stage of the task.
-  
-- **execution_status:** Represents the status of the task during its execution phase. This could include states such as "not_started," "claimed", "running," "success," "failure," or "retrying." It specifically tracks the progress and outcome of the task while it is being executed.
 
 
 ## High Level System Design
@@ -190,13 +197,20 @@ The Scheduling Service is crucial for managing the execution of tasks and ensuri
    - **Low Priority Queue**
 2. **Queue Management:** The queues are managed using FIFO (First-In-First-Out) order within each priority level.
 3. **Execution Order:** The Execution Service always selects tasks from the highest priority queue first. If the high priority queue is empty, it moves to the medium priority queue, and then to the low priority queue.
-4. **Handling Priority Inversion:** The system ensures that low-priority tasks do not block high-priority tasks by implementing timeout mechanisms or aging policies, ensuring higher priority tasks get executed first.
+4. **Weighted Round Robin:** To balance between different priorities, a weighted round-robin approach can be used. Each priority level is assigned a weight (e.g., High: 5, Medium: 3, Low: 1). The Execution Service selects tasks in proportion to these weights, ensuring that higher priority tasks get more execution slots, but lower priority tasks are not completely starved.
+5. **Handling Priority Inversion:** The system ensures that low-priority tasks do not block high-priority tasks by implementing timeout mechanisms or aging policies, ensuring higher priority tasks get executed first.
 
 #### Priority Inversion Example
 1. **Scenario:** A low-priority task (Task A) is running, and a high-priority task (Task B) arrives.
 2. **Inversion Handling:** The system preempts Task A, pausing its execution, and starts executing Task B immediately.
 3. **Timeout Mechanisms:** If Task B is delayed or takes longer than expected, Task A is resumed after a timeout period, ensuring it is not starved indefinitely.
 4. **Aging Policies:** Low-priority tasks that wait too long in the queue can be promoted in priority to ensure they eventually get executed.
+
+#### Weighted Round Robin Example
+1. **Scenario:** The system uses weights to determine the order of task execution from different priority queues.
+2. **Weights Assignment:** Assign weights (e.g., High: 5, Medium: 3, Low: 1).
+3. **Selection Process:** The Execution Service cycles through the queues based on their weights. For example, it might pick 5 tasks from the High Priority Queue, 3 from the Medium Priority Queue, and 1 from the Low Priority Queue in each round.
+4. **Balancing Load:** This method ensures that while higher priority tasks are favored, lower priority tasks still get execution opportunities, preventing starvation.
 
 ### Job Execution Service 
 The Job Execution Service handles the actual execution of tasks, ensuring isolation and reliability.
@@ -213,11 +227,17 @@ The Job Execution Service handles the actual execution of tasks, ensuring isolat
 3. **Atomic State Updates:** State updates (e.g., marking a task as running or completed) are performed using atomic operations to ensure consistency.
 
 #### Isolation in Execution Service
-1. **Task Isolation:** Each task is executed in isolation to prevent interference between tasks.
-2. **Resource Allocation:** Resources are allocated per task, ensuring that each task has the necessary resources for execution without affecting others.
-3. **Fault Isolation:** If a task fails, it does not impact other tasks. Failed tasks are retried based on the `max_retries` attribute and `current_retries` count.
-4. **Concurrency Control:** Concurrency controls ensure that multiple instances of the same task are not executed simultaneously.
-5. **Execution Logs:** Detailed execution logs are maintained for each task to track progress, success, or failure, and facilitate debugging.
+1. **Task Isolation:** Execute each task in isolation.
+2. **Resource Allocation:** Allocate necessary resources per task.
+3. **Fault Isolation:** Failed tasks do not impact others.
+4. **Concurrency Control:** Prevent simultaneous execution of multiple instances of the same task.
+5. **Execution Logs:** Maintain detailed logs for tracking progress and debugging.
+
+#### Retrying Failed Tasks
+1. **Failure Detection:** Update `execution_status` to `failure` in the **Task Execution History Table**.
+2. **Retry Logic:** Check `current_retries` against `max_retries`.
+3. **Re-queue Task:** Increment `current_retries` and re-add the task to the priority queue if retries are remaining.
+4. **Final Failure:** Update task status to `errored` if `max_retries` is reached and notify the user if necessary.
 
 
 ## References

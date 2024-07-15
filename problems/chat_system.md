@@ -1,50 +1,104 @@
 ## Problem Statement
 Design a messaging system like WhatsApp or Facebook Messenger.
 
-
-## Clarification Questions to Interviewer 
+## Clarification Questions to Interviewer
+1. What are the primary use cases for the messaging system?
+2. Are there any specific user limits or message volume requirements?
+3. Should the system support message deletion or editing?
+4. How long should message history be retained?
+5. Are there any specific compliance or regulatory requirements to consider?
 
 ## Requirements
 ### Functional Requirements
-* One-on-one chat
-* Group chat
-* Read receipt: system should support message delivery acknowledgment, such as sent, delivered, and read.
-* Online status
-* Push notifications: system should be able to notify offline users of new messages once their status becomes online.
-* Share multimedia: system should support sharing of media files, such as images, videos, and audio.
-* Chat storage: system must support the persistent storage of chat messages when a user is offline until the successful delivery of messages.
-* Multi device support
+* **One-on-one chat**: Enable direct messaging between two users.
+* **Group chat**: Support messaging among multiple users in a group.
+* **Read receipt**: Provide message delivery acknowledgment (sent, delivered, and read).
+* **Online status**: Show users' online or offline status.
+* **Push notifications**: Notify offline users of new messages once they come online.
+* **Share multimedia**: Allow sharing of media files (images, videos, audio).
+* **Chat storage**: Persist chat messages when a user is offline until the messages are successfully delivered.
+* **Multi-device support**: Ensure users can access their messages on multiple devices.
+
+#### Below the line (out of scope)
+* Audio/Video calling
+* Interactions with businesses
+* Registration and profile management
 
 ### Non-Functional Requirements
-* **Low latency**: Users should be able to receive messages with low latency.
-* **Consistency**: Messages should be delivered in the order they were sent. Also, users must see the same chat history on all of their devices.
-* **Availability**: The system should be highly available. However, consistency is more important than availability.
-* **Security**: The system must be secure via end-to-end encryption. We need to ensure that only the communicating parties can see the content of messages. Nobody in between, not even we as service owners, should have access.
-* **Scalability**: The system should be highly scalable to support an increasing number of users and messages per day.
+* **Low latency**: Ensure users receive messages with minimal delay.
+* **Consistency**: Guarantee that messages are delivered in the order they were sent and users see the same chat history on all devices.
+* **Availability**: Maintain high availability of the system.
+* **Security**: Implement end-to-end encryption to ensure that only communicating parties can see the content of messages.
+* **Scalability**: Scale to support increasing numbers of users and messages per day.
+
+#### Below the line (out of scope)
+* Exhaustive treatment of security concerns
+* Spam and scraping prevention systems
 
 ## Back of Envelope Estimations/Capacity Estimation & Constraints
+* Assume 1 billion users.
+* Each user sends and receives 50 messages per day.
+* Daily message volume: 50 billion messages.
+* Average message size: 1 KB.
+* Daily data transfer: 50 TB.
+* Peak load: 1 million messages per second.
 
 ## High-level API design 
-* Send Message
-```
-sendMessage(message_ID, sender_ID, reciever_ID, type, text=none, media_object=none, document=none)
-```
-* Get message
-```
-getMessages(user_Id, limit, next_token)
-```
-* Upload media or document file
-```
-uploadFile(file_type, file)
-```
-* Download a document or media file
-```
-downloadFile(user_id, file_id)
-```
-## Database Design
+### Send Message
+This endpoint allows a user to send a message to another user or a group.
 
-### Users Table
+```http
+POST /sendMessage
+{
+    "message_id": "string",
+    "sender_id": "string",
+    "receiver_id": "string",  // This can be a user ID for one-on-one chat or a group ID for group chat
+    "type": "text" | "media" | "document",
+    "content": {
+        "text": "string",         // For text messages
+        "media_url": "string",    // URL to the media file for media messages
+        "document_url": "string"  // URL to the document for document messages
+    }
+}
+```
 
+### Get Messages
+This endpoint allows a user to retrieve messages from a chat. It supports pagination for efficiently loading message history.
+
+```http
+GET /getMessages
+{
+    "user_id": "string",
+    "chat_id": "string", // This can be a user ID for one-on-one chat or a group ID for group chat
+    "limit": "int",      // Number of messages to retrieve
+    "next_token": "string" // Token for pagination to retrieve the next set of messages
+}
+```
+
+### Upload Media or Document File
+This endpoint allows a user to upload media or document files to the server.
+
+```http
+POST /uploadFile
+{
+    "file_type": "image" | "video" | "audio" | "document",
+    "file": "binary"  // The actual file to be uploaded
+}
+```
+
+### Download Media or Document File
+This endpoint allows a user to download media or document files from the server.
+
+```http
+GET /downloadFile
+{
+    "user_id": "string",
+    "file_id": "string"  // The unique identifier for the file
+}
+```
+## Data Model
+
+### Users Table (Relational Database - PostgreSQL)
 | Column          | Type           | Constraints                 |
 | --------------- | -------------- | --------------------------- |
 | `user_id`       | `SERIAL`       | `PRIMARY KEY`               |
@@ -57,45 +111,68 @@ downloadFile(user_id, file_id)
 | `created_at`    | `TIMESTAMP`    | `DEFAULT CURRENT_TIMESTAMP` |
 | `updated_at`    | `TIMESTAMP`    | `DEFAULT CURRENT_TIMESTAMP` |
 
-### Messages Table
-
+### Messages Table (NoSQL - Cassandra)
 | Column        | Type        | Constraints                               |
 | ------------- | ----------- | ----------------------------------------- |
-| `message_id`  | `SERIAL`    | `PRIMARY KEY`                             |
-| `sender_id`   | `INT`       | `NOT NULL`, `FOREIGN KEY (users.user_id)` |
-| `receiver_id` | `INT`       | `NOT NULL`, `FOREIGN KEY (users.user_id)` |
+| `message_id`  | `UUID`      | `PRIMARY KEY`                             |
+| `sender_id`   | `INT`       | `NOT NULL`                                |
+| `receiver_id` | `INT`       | `NOT NULL`                                |
 | `content`     | `TEXT`      | `NOT NULL`                                |
 | `created_at`  | `TIMESTAMP` | `DEFAULT CURRENT_TIMESTAMP`               |
 | `updated_at`  | `TIMESTAMP` | `DEFAULT CURRENT_TIMESTAMP`               |
 | `is_read`     | `BOOLEAN`   | `DEFAULT FALSE`                           |
 
-### Groups Table
-
+### Groups Table (Relational Database - PostgreSQL)
 | Column       | Type           | Constraints                 |
 | ------------ | -------------- | --------------------------- |
 | `group_id`   | `SERIAL`       | `PRIMARY KEY`               |
 | `group_name` | `VARCHAR(100)` | `NOT NULL`                  |
 | `created_at` | `TIMESTAMP`    | `DEFAULT CURRENT_TIMESTAMP` |
 
-### Group Members Table
-
+### Group Members Table (Relational Database - PostgreSQL)
 | Column        | Type  | Constraints                                 |
 | ------------- | ----- | ------------------------------------------- |
 | `group_id`    | `INT` | `NOT NULL`, `FOREIGN KEY (groups.group_id)` |
 | `user_id`     | `INT` | `NOT NULL`, `FOREIGN KEY (users.user_id)`   |
 | `PRIMARY KEY` |       | `(group_id, user_id)`                       |
 
-### Group Messages Table
-
+### Group Messages Table (NoSQL - Cassandra)
 | Column        | Type  | Constraints                                     |
 | ------------- | ----- | ----------------------------------------------- |
-| `group_id`    | `INT` | `NOT NULL`, `FOREIGN KEY (groups.group_id)`     |
-| `message_id`  | `INT` | `NOT NULL`, `FOREIGN KEY (messages.message_id)` |
+| `group_id`    | `UUID` | `NOT NULL`                                      |
+| `message_id`  | `UUID` | `NOT NULL`                                      |
 | `PRIMARY KEY` |       | `(group_id, message_id)`                        |
+
+## S3 Stores for Assets
+S3 will be used to store all media files and documents shared within the messaging system. 
+
+### S3 Storage
+| Attribute      | Description                                    |
+| -------------- | ---------------------------------------------- |
+| `file_id`      | Unique identifier for the file                 |
+| `file_type`    | Type of the file (image, video, audio, document)|
+| `file_path`    | S3 path to the stored file                     |
+| `uploaded_at`  | Timestamp of when the file was uploaded        |
+
+## Redis Store for Mapping
+Redis will be used to manage the mapping of users to their respective WebSocket servers for real-time messaging.
+
+### Redis Data Structures
+#### User to Server Mapping
+| Key                     | Value               | Description                                |
+| ----------------------- | ------------------- | ------------------------------------------ |
+| `user_id:<user_id>`     | `server_id`         | Maps a user to the WebSocket server they're connected to |
+
+#### Online Status
+| Key                     | Value               | Description                                |
+| ----------------------- | ------------------- | ------------------------------------------ |
+| `user_status:<user_id>` | `online/offline`    | Indicates the online status of a user      |
+
+These Redis structures help efficiently manage user connections and their online status, ensuring that messages are routed to the correct server and users are notified of new messages as soon as they come online.
 
 ## High Level System Design and Algorithm
 
-![](../resources/problems/chat_system/whatsapp.png)
+![](../resources/problems/chat_system/whatsapp_updated.png)
 
 ### Three Types of High Level Components
 * Stateless Services: These are traditional public-facing request/response HTTP Based services, used to manage the login, signup, user profile, groups information, asset delivery etc. They sit behind a load balancer whose job is to route requests to the correct services based on the request paths.
@@ -265,9 +342,8 @@ If we need to support larger groups, a possible mitigation is to fetch presence 
 * Practice one : https://app.excalidraw.com/import?excalidraw=0hgldWbhbSBs,pqmR9hnrv2oeyJeoxH9Uqg
 ## References
 * Alex Wu - Vol1 - [Chapter 12](https://github.com/preslavmihaylov/booknotes/tree/master/system-design/system-design-interview/chapter13)
+* https://medium.com/@ishwarya1011.hidkimath/system-design-design-a-chat-system-e0056fb093d1
 * https://medium.com/@m.romaniiuk/system-design-chat-application-1d6fbf21b372
-* https://leetcode.com/discuss/study-guide/2066150/chat-system-design-complete-guide
-* https://www.geeksforgeeks.org/designing-whatsapp-messenger-system-design/
 * https://www.educative.io/courses/grokking-modern-system-design-interview-for-engineers-managers/system-design-whatsapp
 * https://www.youtube.com/watch?v=RjQjbJ2UJDg&t=1489s
 * https://github.com/codekarle/system-design/blob/master/system-design-prep-material/architecture-diagrams/Whatsapp%20System%20design.png

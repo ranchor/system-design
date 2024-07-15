@@ -20,12 +20,13 @@ Design a Web Crawler
 * Handling of dynamic content (e.g., JavaScript-rendered pages).
 * Handling of authentication (e.g., login-required pages).
 ### Non-Functional Requirements
-* Fault tolerance to handle failures gracefully and resume crawling without losing progress.
-* Robust - handle edge-cases such as bad HTML, infinite loops, server crashes, etc
-* Politeness to adhere to robots.txt and not overload website servers inappropriately.
-* Efficiency to crawl the web in under 5 days.
-* Scalability to handle 10B pages.
-* Extensibility - it should be easy to add support for new types of content, eg images in the future
+1. **Fault Tolerance:** Handle failures gracefully and resume crawling without losing progress.
+2. **Robustness:** Handle edge cases such as bad HTML, infinite loops, server crashes, etc.
+3. **Politeness:** Adhere to robots.txt and not overload website servers.
+4. **Efficiency:** Crawl the web in under 5 days.
+5. **Scalability:** Handle 10 billion pages.
+6. **Extensibility:** Easy to add support for new types of content, e.g., images in the future.
+
 #### Below the line (out of scope)
 * Security to protect the system from malicious actors.
 * Cost to operate the system within budget constraints.
@@ -43,6 +44,7 @@ Design a Web Crawler
 3. **Flow:** Seed URLs -> URL Frontier -> HTML Downloader -> Content Parser -> URL Extractor -> URL Seen Checker -> URL Frontier.
 
 ## Data Model
+#### Domain Metadata Table
 Stores information about each domain's crawl status and crawl delay.
 
 | Field             | Type          | Description                                          |
@@ -52,7 +54,7 @@ Stores information about each domain's crawl status and crawl delay.
 | crawl_delay_time  | Integer       | The delay in seconds between requests to this domain |
 | robots_txt_url    | String        | S3 URL path to the saved robots.txt file             |
 
-### URL Metadata Table (NoSQL)
+#### URL Metadata Table (NoSQL)
 Stores metadata about each URL, including deduplication hashes and additional information.
 
 | Field            | Type          | Description                                |
@@ -64,47 +66,87 @@ Stores metadata about each URL, including deduplication hashes and additional in
 | simhash          | String        | SimHash for near-duplicate detection       |
 | last_crawled_time| DateTime      | The last time this URL was crawled         |
 | html_s3_path     | String        | S3 path to the stored HTML content         |
-| content_s3_path  | String        | S3 path to the extracted text content      |
+
+
+#### Content Storage Metadata Table (NoSQL)
+Stores metadata about the content, including deduplication hashes and additional information.
+
+| Field            | Type          | Description                                |
+|------------------|---------------|--------------------------------------------|
+| content_id       | String (PK)   | The unique identifier for the content (partition key) |
+| checksum         | String        | Checksum/hash of the content for deduplication |
+| simhash          | String        | SimHash for near-duplicate detection       |
+| storage_s3_path  | String        | S3 path to the stored content              |
+| metadata         | String        | Additional metadata (e.g., content type, extraction date) |
+
+#### GSI (Global Secondary Index) for Tables
+- **URL Metadata Table GSI:**
+  - Index on `checksum` and `simhash` for efficient deduplication checks.
+- **Content Storage Metadata Table GSI:**
+  - Index on `checksum` and `simhash` for efficient content deduplication checks.
+
+### S3 Buckets
+
+#### HTML Storage Bucket
+- **Purpose:** Store the raw HTML content fetched from web pages.
+- **Bucket Name:** `web-crawler-html-storage`
+- **Path Format:** `html/{domain}/{url_id}.html`
+  - Example: `html/example.com/12345.html`
+
+#### Robots.txt Storage Bucket
+- **Purpose:** Store the robots.txt files for each domain.
+- **Bucket Name:** `web-crawler-robots-txt`
+- **Path Format:** `robots/{domain}/robots.txt`
+  - Example: `robots/example.com/robots.txt`
+
+#### Content Storage Bucket
+- **Purpose:** Store the extracted text content from web pages.
+- **Bucket Name:** `web-crawler-content-storage`
+- **Path Format:** `content/{domain}/{content_id}.txt`
+  - Example: `content/example.com/67890.txt`
 
 
 ## High Level System Design
 ![](../resources/problems/web_crawler/web_crawler.png)
 
 ## Deep Dive
-### DFS vs. BFS
+### Order of traversal
 - **DFS (Depth-First Search):**
   - Pros: Deep exploration of sites, potentially faster discovery of deeply nested pages.
   - Cons: Can lead to missing wide coverage, risk of getting stuck in deep but less relevant sections.
 - **[Recommended]BFS (Breadth-First Search):**
-  -  FIFO queue which traverses URLs in order of encountering them.
+  - FIFO queue which traverses URLs in order of encountering them.
   - Pros: Broad exploration, better for finding popular pages and ensuring wide coverage.
   - Cons: May not explore deeply nested pages as efficiently.
 
 ### URL Frontier
-#### Ensure proritization
+#### Ensure Prioritization
 We prioritize URLs by usefulness, which can be determined based on PageRank, web traffic, update frequency, etc.
-
 1. **Prioritizer:** Manages the priority for each URL.
    - Takes URLs as input and calculates priority.
    - URLs are put into respective queues based on priority.
 2. **Queue Selector:** Randomly chooses queues to select from with bias towards high-priority ones.
 ![](../resources/problems/web_crawler/prioritizer.png)
 
-#### Ensure politeness
+#### Ensure Politeness
 A web crawler should avoid sending too many requests to the same host in a short time frame to prevent excessive traffic on the traversed website.
-
 1. **Download Queue per Hostname:** Maintains a download queue per hostname with a delay between element processing.
    - **Queue Router:** Ensures that each queue contains URLs from the same host.
    - **Mapping Table:** Maps each host to a queue.
    - **FIFO Queues:** Maintain URLs belonging to the same host.
    - **Queue Selector:** Worker threads are mapped to FIFO queues and download URLs from those queues, ensuring politeness with a delay between requests.
-
 ![](../resources/problems/web_crawler/mapping-table.png)
+
 ### HTML Downloader
-#### What About if We Fail to Fetch a URL or downloader goes down ?
+#### Extract Root Domain from URL
+* Extracting the root domain from a URL involves parsing the URL to obtain the hostname and then identifying the registered domain, which includes the second-level domain (SLD) and the top-level domain (TLD). This process is crucial in web crawling, data analysis, and security applications where you need to group or filter data by domain.
+* `tldextract` is a Python library that uses the public suffix list to accurately extract the domain components from a URL.
+
+#### Handle URL Fetch Failures
 - Use SQS with Exponential Backoff: Implement retry logic with backoff, moving to a dead-letter queue after several retries.
 - Ensure URLs stay in the queue until confirmed fetched, handled by another crawler if necessary.
-#### How to Deal with Different Error Codes During Fetch of URL?
+
+#### Handle Different Error Codes
 - **404 (Not Found), 401 (Unauthorized), 403 (Forbidden):**
   - Add to Blacklist NoSQL store to avoid re-crawling.
 - **429 (Too Many Requests), 503 (Service Unavailable):**
@@ -149,33 +191,21 @@ To ensure politeness and adhere to robots.txt, we will need to do two things:
    - Implement a global, domain-specific rate limiting mechanism using a centralized data store (like Redis) to track request counts per domain per second.
    - Use a sliding window algorithm to track the number of requests per domain per second.
    - Introduce jitter to prevent synchronized behavior among crawlers.
-#### DNS
+
+#### DNS Management
 - **DNS Caching:** Cache DNS lookups to reduce requests.
 - **Multiple DNS Providers:** Distribute load across providers.
 
-#### Extract Root Domain from URL
-* Extracting the root domain from a URL involves parsing the URL to obtain the hostname and then identifying the registered domain, which includes the second-level domain (SLD) and the top-level domain (TLD). This process is crucial in web crawling, data analysis, and security applications where you need to group or filter data by domain.
-* `tldextract` is a Python library that uses the public suffix list to accurately extract the domain components from a URL.
 
 ### Content Parser
 #### Content Dedupe check
-- **Approaches:**
-  1. **Checksum/Hashing:**
-     - Generate a checksum or hash of the content and store in URL metadata db.
-     - Compare against stored hashes to detect duplicates.
-  2. **SimHash:**
-     - Generate a SimHash of the content for near-duplicate detection.
-     - Use hamming distance to find similar content.
-  3. **Fingerprints:**
-     - Generate fingerprints for segments of content.
-     - Compare fingerprints to detect duplicates.
-  4. **Bloom Filters:**
-     - Use a Bloom filter to probabilistically track seen content hashes.
-     - Low memory usage but allows false positives.
+- **Checksum/Hashing:** Generate a checksum or hash of the content and store it in the URL metadata database.
+- **SimHash:** Generate a SimHash of the content for near-duplicate detection, using hamming distance to find similar content.
+- **Fingerprints:** Generate fingerprints for segments of content, comparing fingerprints to detect duplicates.
+- **Bloom Filters:** Use a Bloom filter to probabilistically track seen content hashes.
 
-#### How SimHash Works
+#### SimHash Working
 SimHash is a technique used for near-duplicate detection in documents. The idea is to generate a hash value that is similar for similar documents. Here's how it works:
-
 1. **Feature Extraction:** Extract features from the document (e.g., words, shingles).
 2. **Hashing:** Apply a hash function to each feature to get a bit vector.
 3. **Weighting:** Assign weights to each bit vector based on the feature's importance.
@@ -189,19 +219,15 @@ This is a crucial step in web crawling, allowing the crawler to discover and tra
 1. **Parse the HTML Content**:
    - Use an HTML parser to parse the web page content stored in s3
    - Libraries like BeautifulSoup (Python) or jsoup (Java) are commonly used for this purpose.
-
 1. **Extract URLs**:
    - Identify and extract anchor tags (`<a>`), image tags (`<img>`), and other elements containing URLs.
    - Extract the `href` attribute from anchor tags and the `src` attribute from image tags.
-
 1. **Normalize URLs**:
    - Convert relative URLs to absolute URLs using the base URL of the web page.
    - Handle URL encoding and ensure URLs are in a standard format.
-
 1. **Filter URLs**:
    - Apply URL filtering rules to exclude unwanted URLs (e.g., binary files, blacklisted domains).
    - Ensure the extracted URLs are valid and adhere to the desired criteria.
-
 1. **Deduplicate URLs**:
    - Remove duplicate URLs to avoid redundant crawling.
    - Use a data structure like a set or a bloom filter to track seen URLs.
@@ -235,9 +261,8 @@ This is a crucial step in web crawling, allowing the crawler to discover and tra
      - **Pros:** Scalable.
      - **Cons:** Higher latency compared to in-memory solutions.
 
-#### How Bloom Filter Works for URL Seen
+#### Bloom Filter Working for URL Seen
 A Bloom filter is a space-efficient probabilistic data structure used to test whether an element is a member of a set. It can produce false positives but not false negatives.
-
 1. **Initialization:** Create a bit array of m bits, all set to 0.
 2. **Hash Functions:** Choose k different hash functions.
 3. **Insertion:** For each URL, compute k hash values and set the corresponding bits in the bit array to 1.
@@ -253,8 +278,8 @@ A Bloom filter is a space-efficient probabilistic data structure used to test wh
 * Example extensions:
     * PNG Downloader is added in order to crawl PNG images.
     * Web monitor is added to monitor for copyright infringements.
-### Detect and avoid problematic content
 
+### Detect and avoid problematic content
 #### Handle Crawler/Spider traps
 - **Detection:**
   - Monitor for excessive links from the same domain.
@@ -263,12 +288,11 @@ A Bloom filter is a space-efficient probabilistic data structure used to test wh
 - **Avoidance:**
   - Use heuristics to identify and avoid crawler traps.
   - Implement timeouts and depth limits.
-### Handle Data Noise
+#### Handle Data Noise
 - Filter out irrelevant content using heuristics and machine learning.
 - Use content analysis to determine the relevance of the extracted text.
 - Regularly update filtering rules based on feedback and new findings.
-
-### Handle dynamic content
+#### Handle dynamic content
 - Use headless browsers (e.g., Puppeteer) to handle JavaScript-rendered pages.
 
 ### Handle Large Files
@@ -287,11 +311,11 @@ A Bloom filter is a space-efficient probabilistic data structure used to test wh
 - **Request Handling:**
   - Implement a system to handle takedown requests and other legal inquiries.
 
-
 ### Scale the systems
 - Use distributed crawling with multiple worker nodes.
 - Implement distributed storage solutions like HDFS or cloud storage.
 - Use message queues (e.g., Kafka) for communication between components.
+
 ## References
 * [Alex Wu - Vol1 - Chapter 9](https://github.com/preslavmihaylov/booknotes/tree/master/system-design/system-design-interview/chapter10)
 * https://www.hellointerview.com/learn/system-design/answer-keys/web-crawler

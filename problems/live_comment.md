@@ -50,35 +50,61 @@ Header: JWT | SessionToken
 GET /comments/:liveVideoId
 ```
 ## Data Model
-* Comments Table (NoSQL - Cassandra)
-This table stores the comments made on live videos.
-```
-{
-  "comment_id": "string",           // Unique identifier for the comment
-  "live_video_id": "string",        // Partition Key: Reference to the associated live video
-  "user_id": "string",              // Reference to the user who commented
-  "message": "string",              // The content of the comment
-  "timestamp": "ISODate"            // Sort Key:The time when the comment was made
-}
-```
-* Video Table (NoSQL - Cassandra)
-This table stores information about live videos.
-```
-{
-  "live_video_id": "string",        // Primary Key: Unique identifier for the live video
-  "title": "string",                // Title of the live video
-  "description": "string",          // Description of the live video
-  "user_id": "string",              // Reference to the creator user
-  "start_time": "ISODate",          // The start time of the live video
-  "end_time": "ISODate"             // The end time of the live video
-}
-```
-* Users Table
-- **Primary Key**: `user_id` (BIGINT) - Unique identifier for the user
-- `username` (VARCHAR) - Username of the user
-- `email` (VARCHAR) - Email of the user
-- `password_hash` (VARCHAR) - Hashed password for authentication
-- `created_at` (TIMESTAMP) - The time when the user account was created
+### Comments Table (NoSQL - Cassandra)
+| Field          | Type    | Description                                   |
+|----------------|---------|-----------------------------------------------|
+| comment_id     | String  | Unique identifier for the comment             |
+| live_video_id  | String  | Partition Key: Reference to the associated live video |
+| user_id        | String  | Reference to the user who commented           |
+| message        | String  | The content of the comment                    |
+| timestamp      | ISODate | Sort Key: The time when the comment was made  |
+
+### Video Table (NoSQL - Cassandra)
+| Field         | Type    | Description                            |
+|---------------|---------|----------------------------------------|
+| live_video_id | String  | Primary Key: Unique identifier for the live video |
+| title         | String  | Title of the live video                |
+| description   | String  | Description of the live video          |
+| user_id       | String  | Reference to the creator user          |
+| start_time    | ISODate | The start time of the live video       |
+| end_time      | ISODate | The end time of the live video         |
+
+### Users Table
+| Field       | Type     | Description                          |
+|-------------|----------|--------------------------------------|
+| user_id     | BIGINT   | Primary Key: Unique identifier for the user |
+| username    | VARCHAR  | Username of the user                 |
+| email       | VARCHAR  | Email of the user                    |
+| password_hash | VARCHAR | Hashed password for authentication   |
+| created_at  | TIMESTAMP | The time when the user account was created |
+
+
+### Redis Data Structures
+
+#### Endpoint Store
+| Key (`video_id`) | Value                                                                                             |
+|------------------|---------------------------------------------------------------------------------------------------|
+| video123         | { "gateway_servers": ["gateway1", "gateway2"], "timestamp": "2023-12-31T23:59:59Z" }               |
+
+| Field           | Type          | Description                                  |
+|-----------------|---------------|----------------------------------------------|
+| video_id        | String        | Reference to the associated live video       |
+| gateway_servers | List<String>  | List of gateway servers interested in the live video |
+| timestamp       | ISODate       | The time when the subscription was created   |
+
+#### In-Memory Subscription Store
+| Key (`video_id`) | Value                          |
+|------------------|--------------------------------|
+| video123         | { "user_id": "user789", "connection_id": "conn456" }  |
+
+| Field         | Type   | Description                                     |
+|---------------|--------|-------------------------------------------------|
+| video_id      | String | Reference to the associated live video          |
+| user_id       | String | Reference to the user                           |
+| connection_id | String | Reference to the WebSocket or SSE connection    |
+
+The in-memory subscription store holds the mapping between live videos and receivers (client connections). A dedicated disk-based endpoint store identifies the gateway servers interested in a specific live video. The endpoint store contains a mapping between the live videos and a set of gateway servers.
+
 ## High Level System Design
 
 ![](../resources/problems/live_comment/live_comments.png)

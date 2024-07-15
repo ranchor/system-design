@@ -84,6 +84,86 @@ GET /search
 - **position**: Position of the term in the document.
 
 ## High Level System Design
+![](../resources/problems/search/distributed_search.png)
+
+#### Real-Time Ingestion
+
+1. **Users (Create Post)**:
+   - Users create posts using a front-end application.
+   
+2. **Load Balancer/API Gateway**:
+   - Distributes incoming create post requests to the PostService.
+
+3. **PostService**:
+   - Handles the creation of posts.
+   - Generates a unique document ID (e.g., UUID).
+   - Stores the post in PostDB with the generated document ID.
+
+4. **PostDB**:
+   - Stores the post content using the document ID as the primary key.
+
+5. **StreamsProcessor**:
+   - Listens for new posts or updates in PostDB.
+   - Processes the new data stream and sends it to the Search Node Cluster for real-time indexing.
+   - Optionally stores the raw document in S3 for backup or batch processing.
+
+6. **Search Node Cluster**:
+   - Updates the in-memory inverted index with the new document in real-time.
+   - Each partition handles its subset of data and updates the relevant posting lists.
+
+7. **SearchService**:
+   - Handles search queries from users.
+   - Uses the inverted index to find relevant document IDs.
+   - Fetches post details from PostDB or S3 using these document IDs.
+   - Aggregates and returns search results to the user.
+
+#### Real-Time Deletion
+
+1. **Users (Delete Post)**:
+   - Users request to delete a post.
+
+2. **Load Balancer/API Gateway**:
+   - Distributes incoming delete requests to the PostService.
+
+3. **PostService**:
+   - Marks the document as deleted in PostDB by updating a `deleted` flag.
+
+4. **StreamsProcessor**:
+   - Listens for delete events from PostDB.
+   - Updates the Search Node Cluster to exclude the deleted document from the inverted index.
+
+5. **Search Node Cluster**:
+   - Marks the document as deleted in the in-memory inverted index.
+   - Periodic background jobs clean up these marked entries to maintain index efficiency.
+
+#### Batch Ingestion
+
+1. **WebCrawler**:
+   - In the case of web search, a web crawler collects documents from various sources and stores them in S3.
+
+2. **S3 Storage (Raw Documents)**:
+   - Stores raw documents collected by the web crawler or from other sources like PostDB.
+
+3. **Offline Jobs**:
+   - Periodically processes raw documents stored in S3.
+   - Preprocesses documents (tokenization, stopwords removal, normalization, stemming/lemmatization).
+   - Creates term/document pairs and sorts them.
+   - Updates the Search Node Cluster with the new or modified documents.
+
+4. **Search Node Cluster**:
+   - Receives batch updates from offline jobs.
+   - Reindexes documents and updates the in-memory inverted index accordingly.
+
+#### Batch Deletion
+
+1. **Offline Jobs**:
+   - Periodically checks for documents marked as deleted in PostDB or S3.
+   - Processes deletions by updating the Search Node Cluster to remove these documents from the inverted index.
+
+2. **Search Node Cluster**:
+   - Excludes the deleted documents from the in-memory inverted index.
+   - Ensures the index is up-to-date with periodic clean-up jobs to remove stale entries.
+
 ## Deep Dive Topics
 ### Build inverted index/reverse index
 An inverted index is a HashMap-like data structure that employs a document-term matrix. Instead of storing the complete document as it is, it splits the documents into individual words.
@@ -139,6 +219,10 @@ Here, the format is `(document_id, position_in_document)`.
 3. **Random Access**: Use the document ID to look up the file location in the mapping and retrieve the document from disk.
 
 
+#### Handling Document Deletion
+1. **Soft Delete**: Mark the document as deleted without immediately removing it from the index
+2. **Background Job**: Periodically run a background job to remove documents marked for deletion and update the inverted index accordingly.
+
 ### Data Partioning 
 #### Document Partitioning
 - **Definition**: Partition documents into subsets, each indexed by a different node.
@@ -153,6 +237,12 @@ Here, the format is `(document_id, position_in_document)`.
 
 ![](../resources/problems/search/partition.png)
 
+#### Why Document Partitioning is Better than Term Partitioning in Distributed Search
+- **Reduced Inter-Node Communication**: Document partitioning minimizes the need for nodes to communicate during query processing, leading to lower latency.
+- **Scalability**: Easier to scale by adding more nodes, each handling a subset of documents.
+- **Simplicity**: Simplifies the management of indexes as each node independently handles a subset of the documents.
+
+
 Following document partitioning, let’s look into a distributed design for index construction and querying, which is shown in the illustration below. We use a cluster that consists of a number of low-cost nodes and a cluster manager. The cluster manager uses a MapReduce programming model to parallelize the index’s computation on each partition. MapReduce can work on significantly larger datasets that are difficult to be handled by a single large server.
 ![](../resources/problems/search/partition_docs.png)
 
@@ -162,7 +252,6 @@ groups of nodes to answer user queries. `R` is the number of replicas. The numbe
 #### Replication factor and replica distribution
 Generally, a replication factor of three is enough. A replication factor of three means three nodes host the same partition and produce the index. One of the three nodes becomes the primary node, while the other two are replicas. Each of these nodes produces indexes in the same order to converge on the same state.
 
-To illustrate, let’s divide the data, a document set, into four partitions. Since the replication factor is three, one partition will be hosted by three nodes. We’ll assume that there are two availability zones
 
 
 ### Search Query Processing with Inverted Index
@@ -222,33 +311,23 @@ Ranked retrieval is a fundamental approach in information retrieval systems, add
 1. **Jaccard Coefficient**:
    - Measures the similarity between the query and a document based on the intersection of terms.
    - **Formula**: \( J(A, B) = \frac{|A \cap B|}{|A \cup B|} \)
-   - **Issue**: Does not account for term frequency (TF) or the importance of terms (IDF), leading to potential inaccuracies in ranking.
 
 2. **Term Frequency-Inverse Document Frequency (TF-IDF)**:
    - Combines term frequency (TF) and inverse document frequency (IDF) to weigh terms.
-   - **TF**: Frequency of a term in a document.
-   - **IDF**: Measures the rarity of a term across all documents.
-   - **Formula**: \( \text{TF-IDF}(t, d) = \text{TF}(t, d) \times \text{IDF}(t) \)
    - **TF Formula**: \( \text{TF}(t, d) = \frac{\text{Number of times term } t \text{ appears in document } d}{\text{Total number of terms in document } d} \)
    - **IDF Formula**: \( \text{IDF}(t) = \log \left( \frac{\text{Total number of documents}}{\text{Number of documents containing term } t} \right) \)
 
 3. **Cosine Similarity**:
    - Measures the cosine of the angle between two vectors (query and document) in a multi-dimensional space.
-   - Treats documents and queries as vectors of term weights (TF-IDF).
    - **Formula**: \( \text{Cosine Similarity}(d, q) = \frac{\sum_{i=1}^{n} w_{di} \times w_{qi}}{\sqrt{\sum_{i=1}^{n} w_{di}^2} \times \sqrt{\sum_{i=1}^{n} w_{qi}^2}} \)
-   - \( w_{di} \) and \( w_{qi} \) are the TF-IDF weights of term \( i \) in document \( d \) and query \( q \), respectively.
 
 4. **Okapi BM25**:
    - A probabilistic retrieval model that ranks documents based on the likelihood of relevance.
-   - Considers term frequency, document length, and overall term importance.
    - **Formula**: \( \text{BM25}(d, q) = \sum_{i=1}^{n} \text{IDF}(t_i) \times \frac{f(t_i, d) \times (k_1 + 1)}{f(t_i, d) + k_1 \times (1 - b + b \times \frac{|d|}{\text{avgdl}})} \times \frac{f(t_i, q) \times (k_2 + 1)}{f(t_i, q) + k_2} \)
-   - Parameters \( k_1 \) and \( b \) are tuning parameters, \( f(t_i, d) \) is the term frequency in the document, \( |d| \) is the document length, and \( \text{avgdl} \) is the average document length.
 
 5. **Language Models**:
    - Based on the probability of generating a query from a document.
-   - Documents are ranked based on the likelihood of the query given the document model.
    - **Formula**: \( P(q | d) = \prod_{i=1}^{n} P(t_i | d) \)
-   - Smoothing techniques are used to handle zero probabilities for unseen terms.
 
 #### Implementation Steps
 1. **Preprocessing**:
@@ -269,12 +348,13 @@ Ranked retrieval is a fundamental approach in information retrieval systems, add
    - Present the top-ranked documents to the user.
 
 
-### Elastic Search
-Lucene does all the above-mentioned things, a library used internally by elastic search. Elasticsearch converts Lucene into a distributed system/search engine for scaling horizontally. Elasticsearch also provides other features like thread-pool, queues, node/cluster monitoring API, data monitoring API, Cluster management, etc. In short, Elasticsearch extends Lucene and provides additional features beyond it.
+### ElasticSearch
+Lucene is used internally by Elasticsearch. Elasticsearch converts Lucene into a distributed system/search engine for scaling horizontally and provides additional features like thread-pool, queues, node/cluster monitoring API, data monitoring API, cluster management, etc. Elasticsearch extends Lucene and provides additional features beyond it.
 
-But why is elastic search the main question? Elasticsearch provides speed and scalability; it is distributed in nature, which means scaling out is just adding more nodes. More importantly, it provides a very simple rest interface to interface with it. Because of the simple rest APIs, you need a simple HTTP client to talk to elastic search servers, making it super easy to use.
+#### Why Elasticsearch?
+- **Speed and Scalability**: Distributed in nature, making it easy to scale out by adding more nodes.
+- **Simple REST Interface**: Allows easy interaction through simple HTTP clients.
 
-Until now, we have been clear that we will leverage an elastic search to build our search system. Before this, we need a standardized way for the end user can access the elastic search cluster. We add a proxy between a client and the server. So whichever microservice (assuming the elastic search cluster may be used across teams) needs to access the Elasticsearch needs to go through the proxy. Now because we have a proxy, we can stack a lot of parameters like throttling (rate limiter), router, monitoring, etc.
 
 #### Partitioning and Replication Strategy in Elasticsearch
 1. **Document Partitioning**: Elasticsearch uses document partitioning, known as "sharding," where each shard is a fully functional search engine.
@@ -317,5 +397,6 @@ Until now, we have been clear that we will leverage an elastic search to build o
   ![Information Retrieval](https://www.youtube.com/playlist?list=PLaZQkZp6WhWwoDuD6pQCmgVyDbUWl_ZUi)
 * https://www.educative.io/courses/grokking-modern-system-design-interview-for-engineers-managers/system-design-the-distributed-search
 * https://www.hellointerview.com/learn/system-design/answer-keys/tweet-search
+* https://systemdesign.one/system-design-interview-cheatsheet/#twitter-search
 * https://blog.devgenius.io/search-system-design-that-scales-2fdf407a2d34
 * https://medium.com/double-pointer/system-design-interview-search-engine-edb66b64fd5e

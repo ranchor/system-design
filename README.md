@@ -94,9 +94,7 @@
 - [Design Price Alert Online System](https://github.com/ranchor/system-design/blob/main/problems/price_tracker.md)
 
 ### Streaming/Continuous Data Flow
-- [Design YouTube](https://github.com/ranchor/system-design/blob/main/problems/youtube.md)
 - [Design Chat System/messenger](https://github.com/ranchor/system-design/blob/main/problems/chat_system.md)
-- [Design News Feed](https://github.com/ranchor/system-design/blob/main/problems/newsfeed_system.md)
 - [Design Location Based Service like Yelp](https://github.com/ranchor/system-design/blob/main/problems/proximity_service.md)
 - [Design Uber](https://github.com/ranchor/system-design/blob/main/problems/uber.md)
 - [Design Google Maps]()
@@ -107,11 +105,13 @@
 - [Design Google Docs](https://github.com/ranchor/system-design/blob/main/problems/google_docs.md)
 
 ### User Requests Traffic
+- [Design News Feed](https://github.com/ranchor/system-design/blob/main/problems/newsfeed_system.md)
 - [Design a Ticketmaster](https://github.com/ranchor/system-design/blob/main/problems/ticketmaster.md)
 - [Design a Hotel Reservation System](https://github.com/ranchor/system-design/blob/main/problems/hotel_reservation_system.md)
 - [Design Dropbox/Google Drive/File Sharing Service](https://github.com/ranchor/system-design/blob/main/problems/dropbox.md)
 - [Design Google Photos/Photos Storage](https://github.com/ranchor/system-design/blob/main/problems/google_photos.md)
 - [Design Instagram](https://github.com/ranchor/system-design/blob/main/problems/instagram.md)
+- [Design YouTube](https://github.com/ranchor/system-design/blob/main/problems/youtube.md)
 - [Design a Search AutoComplete system](https://github.com/ranchor/system-design/blob/main/problems/typehead_suggestion.md)
 - [Design a Google Search](https://github.com/ranchor/system-design/blob/main/problems/distributed_search.md)
 - [Design a Local Delivery]()
@@ -146,6 +146,7 @@
 - [ByteByteGoHq](https://github.com/ByteByteGoHq/system-design-101)
 - [designing-data-intensive-applications notes](https://github.com/keyvanakbary/learning-notes/blob/master/books/designing-data-intensive-applications.md)
 - [Alex Wu Books Notes](https://github.com/preslavmihaylov/booknotes/tree/master/system-design/system-design-interview)
+- [systemdesign one](https://systemdesign.one/system-design-interview-cheatsheet/)
 
 
 ## YouTube Channels
