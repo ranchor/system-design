@@ -205,67 +205,89 @@ It is a persistent abd bidirectional communication protocol that enables real-ti
 
 
 
-### Send or Receive Direct Message(DM) 
-1. **User A Sends a Message to User B**:
-   - User A sends a message to User B through WebSocket Server 1.
-   - The WebSocket Server 1 generates a unique message ID using the Twitter Snowflake approach to ensure unique and sortable IDs.
+### Send or Receive Direct Message (DM) Workflow
 
-2. **Message Delivery for Online Users**:
-   - **Check Online Status**: WebSocket Server 1 checks its cache to determine if User B is online.
-   - **Query Zookeeper**: If necessary, WebSocket Server 1 queries Zookeeper to identify which WebSocket server User B is connected to.
-   - **Direct Delivery**: If User B is online, the message is sent directly to User B via WebSocket Server 2.
+#### 1. **User A Sends a Message to User B**:
+- User A sends a message to User B through WebSocket Server 1.
+- WebSocket Server 1 generates a unique message ID using the Twitter Snowflake approach to ensure unique and sortable IDs.
 
-3. **Message Delivery for Offline Users**:
-   - **Store Message**: If User B is offline, the message is persisted in the Message DB.
-   - **Trigger Push Notification**: The system triggers push notifications to inform User B of new messages.
+#### 2. **Message Delivery for Online Users**:
+- **Check Online Status**: WebSocket Server 1 checks its in-memory store to determine if User B is online.
+- **Query Redis**: If User B is not found in the in-memory store, WebSocket Server 1 queries Redis to identify which WebSocket server User B is connected to. Redis contains a mapping of `user_id` to `web_socket_server_id`.
+- **Identify Connection ID**: Redis provides the `web_socket_server_id` for User B.
+- **HTTP(S) Request to Target WebSocket Server**:
+  - WebSocket Server 1 sends an HTTP(S) request to the identified WebSocket server (WebSocket Server 2) with the message and `user_id`.
+  - The HTTP(S) request includes the message payload and metadata such as the target `user_id`.
 
-4. **Broadcast to Kafka**:
-   - **Publish Message**: The WebSocket Server 1 publishes the message to the Chat Kafka topic partitioned by `user_id`.
-   - **Ensure Ordering**: This ensures message ordering and durability.
+#### 3. **WebSocket Server 2 Handles Delivery**:
+- **Receive HTTP(S) Request**: WebSocket Server 2 receives the HTTP(S) request from WebSocket Server 1.
+- **Find Connection ID**: WebSocket Server 2 uses the `user_id` from the request to find the corresponding `connection_id` in its in-memory store.
+- **Deliver Message**: WebSocket Server 2 delivers the message to User B through the identified WebSocket connection.
 
-5. **Message Sync Service**:
-   - **Consume Messages**: The Message Sync Service consumes messages from Kafka and processes them.
-   - **Store Messages**: It stores messages in the Message DB.
-   - **Handle Read Receipts**: Once User B receives the message, WebSocket Server 2 updates the read receipt status in the Message DB.
-   - **Update Last Seen**: The Last Seen Service updates the online status in the Users DB.
+#### 4. **Message Delivery for Offline Users**:
+- **Send to Kafka**: If User B is offline, WebSocket Server 1 sends the message to Kafka.
+- **Trigger Push Notification**: The system triggers push notifications to inform User B of new messages.
 
+#### 5. **Broadcast to Kafka**:
+- **Publish Message**: WebSocket Server 1 publishes the message to the `chat-messages` topic partitioned by `user_id`.
+- **Ensure Ordering**: This ensures message ordering and durability.
+
+#### 6. **Message Sync Service**:
+- **Consume Messages**: The Message Sync Service consumes messages from Kafka and processes them.
+- **Store Messages**: It stores messages in the Message DB.
+- **Handle Read Receipts**: Once User B receives the message, the WebSocket server updates the read receipt status in the Message DB.
+- **Update Last Seen**: The Last Seen Service updates the online status in the Users DB.
 
 ### Handling Offline Users
 
-1. **Message Storage**:
-   - **Short-term Storage in Kafka**: Messages are stored in the user's Kafka topic for up to 24 hours.
-   - **Long-term Storage in Database**: After 24 hours, the Message Sync Service moves messages to the Message DB.
+#### 1. **Message Storage**:
+- **Short-term Storage in Kafka**: Messages are stored in the user's partition in the `chat-messages` Kafka topic for up to 24 hours.
+- **Long-term Storage in Database**: After 24 hours, the Message Sync Service moves messages from Kafka to the Message DB.
 
-2. **Push Notifications**:
-   - The Message Sync Service triggers push notifications to inform offline users of new messages.
+#### 2. **Push Notifications**:
+- The Message Sync Service triggers push notifications to inform offline users of new messages.
 
-3. **Subscribing to Kafka Topics**:
-   - **Subscribe to User ID Topic**: Each user subscribes to their user ID topic on Kafka to retrieve messages upon coming online. Persist older messages on a particular partition id for the user id if not broadcasted.
-   - **Message Retrieval**: The Message Sync Service processes these messages and delivers them to the users.
+#### 3. **Subscribing to Kafka Topics**:
+- **Dynamic Partitioning and Topic Creation**:
+  - If a single topic's partition limit is reached (e.g., 200,000 partitions per Kafka cluster), new topics can be created dynamically to handle additional partitions.
+  - For instance, you might create topics like `chat-messages-1`, `chat-messages-2`, etc., each with multiple partitions.
+  
+- **Subscribe to User ID Partition**:
+  - **User-specific Partitions**: Each user is associated with a specific partition within the `chat-messages` Kafka topic based on their user ID.
+  - **Dynamic Subscription**: When a user comes online, they subscribe to their specific partition to retrieve any messages sent during their offline period.
+
+- **Message Retrieval**:
+  - **Consumer Groups**: Use Kafka consumer groups to manage subscriptions and message retrieval. Each user's client acts as a consumer within the group.
+  - **Message Sync Service**:
+    - The Message Sync Service consumes messages from Kafka, ensuring no messages are missed.
+    - It processes these messages and delivers them to the user's WebSocket connection if they are online.
+    - If the user is still offline, it persists the messages in the Message DB for later retrieval.
+
+- **Handling Older Messages**:
+  - **Persistence**: Persist older messages that were not broadcasted within their Kafka partition.
+  - **Retrieval on Reconnection**: When users reconnect, their clients can fetch these persisted messages from Kafka and the Message DB to ensure they receive all missed communications.
 
 ### Support for Group Messages
 
-1. **User U1 Sends a Message to Group G1**:
-   - User U1 sends a message to Group G1 through WebSocket Server 1.
-   - The WebSocket Server 1 generates a unique message ID using the Twitter Snowflake approach.
+#### 1. **User U1 Sends a Message to Group G1**:
+- User U1 sends a message to Group G1 through WebSocket Server 1.
+- WebSocket Server 1 generates a unique message ID using the Twitter Snowflake approach.
 
-2. **Retrieve Group Members**:
-   - **Query Group Service**: WebSocket Server 1 queries the Group Service to get the list of user IDs in Group G1.
-   
-3. **Message Delivery for Group Members**:
-   - **Check Online Status**: WebSocket Server 1 checks if each group member is online.
+#### 2. **Retrieve Group Members**:
+- **Query Group Service**: WebSocket Server 1 queries the Group Service to get the list of user IDs in Group G1.
 
+#### 3. **Message Delivery for Group Members**:
+- **Check Online Status**: WebSocket Server 1 checks if each group member is online.
+- **Direct Delivery**: For online members, WebSocket Server 1 sends the message directly to their respective WebSocket servers.
+- **Offline Members**: For offline members, the message is stored in Kafka for those user IDs and will be broadcast later.
 
-   - **Direct Delivery**: For online members, WebSocket Server 1 sends the message directly to their respective WebSocket servers.
-   - **Offline Members**: For offline members, the message is stored in Kafka for those user IDs and will be broadcast later.
+#### 4. **Broadcast to Kafka**:
+- **Publish Message**: The message is published to the `chat-messages` topic partitioned by `user_id` for all group members.
 
-4. **Broadcast to Kafka**:
-   - **Publish Message**: The message is published to the Chat Kafka topic partitioned by `user_id` for all group members.
-   
-5. **Message Sync Service**:
-   - **Consume Messages**: The Message Sync Service consumes messages from Kafka.
-   - **Store Messages**: It stores messages in the Message DB.
-   - **Broadcast to Group Members**: It retrieves group membership information and broadcasts messages to all group members through their respective WebSocket servers.
+#### 5. **Message Sync Service**:
+- **Consume Messages**: The Message Sync Service consumes messages from Kafka.
+- **Store Messages**: It stores messages in the Message DB.
+- **Broadcast to Group Members**: It retrieves group membership information and broadcasts messages to all group members through their respective WebSocket servers.
 
 
 ###  Send or receive media files(Asset Delivery)

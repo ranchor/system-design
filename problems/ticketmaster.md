@@ -29,17 +29,69 @@ Design a distributed system for an online ticket booking platform like Ticketmas
 
 
 ## Back of Envelope Estimations/Capacity Estimation & Constraints
-## High-level API design 
-View Events (Read)
-   ListEvent - GET viewEvent?pageNumber=<<>>,maxResultSize=<<> ---> List<Events>
-   GetEvent - GET getEvent?eventId=<<>> --> Event Object
+## High-Level API Design 
 
-Search Events (Read)
-   - GET searchEvent?type=<<>>,location=<<>>, performerName=<<>>, eventName=<<>>
+### View Events (Read)
+- **List Events** 
+  - **Endpoint**: `GET /events`
+  - **Query Parameters**: 
+    - `pageNumber` (optional): The page number for pagination.
+    - `maxResultSize` (optional): Maximum number of results per page.
+  - **Response**: List of events.
+  - **Example**: `GET /events?pageNumber=1&maxResultSize=10`
 
-Book Events (Write)
- POST bookEvent?eventId=<<>>,seatNumber=<<>>
-## Database Design
+- **Get Event** 
+  - **Endpoint**: `GET /events/{eventId}`
+  - **Path Parameters**: 
+    - `eventId`: Unique identifier of the event.
+  - **Response**: Event object.
+  - **Example**: `GET /events/123`
+
+### Search Events (Read)
+- **Search Events** 
+  - **Endpoint**: `GET /search/events`
+  - **Query Parameters**: 
+    - `type` (optional): Type of event.
+    - `location` (optional): Location of the event.
+    - `performerName` (optional): Name of the performer.
+    - `eventName` (optional): Name of the event.
+  - **Response**: List of matching events.
+  - **Example**: `GET /search/events?type=concert&location=NYC&performerName=John+Doe&eventName=Live+Concert`
+
+### Book Events (Write)
+- **Book Event** 
+  - **Endpoint**: `POST /book`
+  - **Body Parameters**: 
+    - `eventId`: Unique identifier of the event.
+    - `seatIds`: List of seat IDs to be booked.
+  - **Response**: Booking ID.
+  - **Example**: 
+    ```json
+    {
+      "eventId": 123,
+      "seatIds": ["A1", "A2", "A3"]
+    }
+    ```
+
+- **Checkout** 
+  - **Endpoint**: `POST /checkout`
+  - **Body Parameters**: 
+    - `bookingId`: Unique identifier of the booking.
+    - `paymentDetails`: Payment information (e.g., credit card details).
+  - **Response**: Confirmation of payment and booking.
+  - **Example**: 
+    ```json
+    {
+      "bookingId": 456,
+      "paymentDetails": {
+        "cardNumber": "1234-5678-9012-3456",
+        "expiryDate": "12/23",
+        "cvv": "123"
+      }
+    }
+    ```
+
+## Data Model
 ### Users Table
 | Column      | Type        | Constraints                  |
 |-------------|-------------|------------------------------|

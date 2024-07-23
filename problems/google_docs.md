@@ -314,4 +314,3 @@ public class CollaborationHandler extends TextWebSocketHandler {
 * https://www.educative.io/courses/grokking-modern-system-design-interview-for-engineers-managers/system-design-google-docs
 * https://medium.com/@sureshpodeti/system-design-google-docs-93e12133a979
 * https://www.youtube.com/watch?v=2auwirNBvGg&t=2115s
-* https://medium.com/@sureshpodeti/system-design-google-docs-93e12133a979

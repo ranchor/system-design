@@ -42,7 +42,7 @@ Design a proximity service that can notify users when they are near certain poin
 2. **GET /business/{id}**: Get a business.
 3. **DELETE /business/{id}**: Remove a business.
 
-## Database Design
+## Data Model
 
 ### Users Table
 - `user_id` (Primary Key)
@@ -64,8 +64,19 @@ Design a proximity service that can notify users when they are near certain poin
 - `created_by`
 - `updated_by`
 
+
+### Redis Structure
+
+#### Geohash Mapping to Business IDs
+- **Key**: `geohash_4:<hash>` | `geohash_5:<hash>` | `geohash_6:<hash>`
+- **Value**: List of business IDs
+
+#### Business ID to Business Info
+- **Key**: `business:<business_id>`
+- **Value**: Business information
+
 ## High Level System Design
-<<TBD>>
+![](../resources/problems/proximity_service/proxmity_service.png)
 
 ## Algorithms to Fetch Nearby POIs
 ### SQL Approach/Two-Dimensional Search
@@ -129,6 +140,7 @@ We can,however, build 2D indexes and there are different approaches to that:
         (longitude BETWEEN {:user_long} - D AND {:user_long} + D);
     ```
 * Minimal GeoHash length can be determined based on the desired radius of the search. Below table shows corresponding relationship:
+
 | **Radius(KM)**    | **GeoHash length** |
 |-------------------|--------------------|
 | 0.5km(0.31 miles) | 6                  |
