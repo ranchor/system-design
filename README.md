@@ -75,9 +75,6 @@
 ### Depth Oriented Problems
 - [Design Consistent Hashing]()
 - **[Design Distributed Key-Value Store](https://github.com/ranchor/system-design/blob/main/problems/key_value_store.md)**
-- [Design API Rate Limiter](https://github.com/ranchor/system-design/blob/main/problems/rate_limiter.md)
-- [Design a Unique Id Generator & Key Generator](https://github.com/ranchor/system-design/blob/main/problems/unique_id_generator.md)
-- [Design a Url Shortener or Design a tiny url](https://github.com/ranchor/system-design/blob/main/problems/url_shortener.md)
 - [Design Content Delivery Network (CDN)]()
 - **[Design Distributed Cache](https://github.com/ranchor/system-design/blob/main/problems/distributed_cache.md)**
 - [Design Distributed Message Queue](https://github.com/ranchor/system-design/blob/main/problems/distributed_message_queue.md)
@@ -85,41 +82,57 @@
 - **[Design a object storage system / S3 / Dropbox]()**
 - **[Design Distributed Locking Service]()**
 - **[Design Distributed Counters]()**
-- [Design notification system](https://github.com/ranchor/system-design/blob/main/problems/notification_system.md)
+- [Design Distributed Logging](https://github.com/ranchor/system-design/blob/main/problems/distributed_logging.md)
+- [Design Metrics Monitoring and Alerting System](https://github.com/ranchor/system-design/blob/main/problems/distributed_metrics.md)
 
-### Batch Jobs
+### Networking and API Systems
+- [Design API Rate Limiter](https://github.com/ranchor/system-design/blob/main/problems/rate_limiter.md)
+- [Design a Unique Id Generator & Key Generator](https://github.com/ranchor/system-design/blob/main/problems/unique_id_generator.md)
+- [Design a Url Shortener or Design a tiny url](https://github.com/ranchor/system-design/blob/main/problems/url_shortener.md)
+- [Design notification system](https://github.com/ranchor/system-design/blob/main/problems/notification_system.md)
 - [Design Job Scheduler/Distributed Task Scheduler](https://github.com/ranchor/system-design/blob/main/problems/distributed_job_scheduler.md)
+
+### Search and Discovery Systems
+- [Design a Search AutoComplete system](https://github.com/ranchor/system-design/blob/main/problems/typehead_suggestion.md)
+- [Design a Google Search](https://github.com/ranchor/system-design/blob/main/problems/distributed_search.md)
 - [Design Web Crawler](https://github.com/ranchor/system-design/blob/main/problems/web_crawler.md)
-- [Design LeetCode](https://github.com/ranchor/system-design/blob/main/problems/leetcode.md)
-- [Design Price Alert Online System](https://github.com/ranchor/system-design/blob/main/problems/price_tracker.md)
 
 ### Streaming/Continuous Data Flow
-- [Design Chat System/messenger](https://github.com/ranchor/system-design/blob/main/problems/chat_system.md)
+- [Design Ad-Click Aggregration](https://github.com/ranchor/system-design/blob/main/problems/ad_click_aggregration.md)
+- [Design Trending Topics (Twitter)/Top K/Heavy Hitters](https://github.com/ranchor/system-design/blob/main/problems/top_k.md)
+- [Design Google Docs](https://github.com/ranchor/system-design/blob/main/problems/google_docs.md)
+
+### Location-Based Systems
 - [Design Location Based Service like Yelp](https://github.com/ranchor/system-design/blob/main/problems/proximity_service.md)
 - [Design Uber](https://github.com/ranchor/system-design/blob/main/problems/uber.md)
 - [Design Google Maps]()
-- [Design Metrics Monitoring and Alerting System]()
-- [Design Ad-Click Aggregration](https://github.com/ranchor/system-design/blob/main/problems/ad_click_aggregration.md)
-- [Design Trending Topics (Twitter)/Top K/Heavy Hitters](https://github.com/ranchor/system-design/blob/main/problems/top_k.md)
-- [Design Live Comments](https://github.com/ranchor/system-design/blob/main/problems/live_comment.md)
-- [Design Google Docs](https://github.com/ranchor/system-design/blob/main/problems/google_docs.md)
+- [Design a Local Delivery]()
 
-### User Requests Traffic
+### Social Media and Communication Systems
+- [Design Chat System/messenger](https://github.com/ranchor/system-design/blob/main/problems/chat_system.md)
 - [Design News Feed](https://github.com/ranchor/system-design/blob/main/problems/newsfeed_system.md)
-- [Design a Ticketmaster](https://github.com/ranchor/system-design/blob/main/problems/ticketmaster.md)
-- [Design a Hotel Reservation System](https://github.com/ranchor/system-design/blob/main/problems/hotel_reservation_system.md)
-- [Design Dropbox/Google Drive/File Sharing Service](https://github.com/ranchor/system-design/blob/main/problems/dropbox.md)
-- [Design Google Photos/Photos Storage](https://github.com/ranchor/system-design/blob/main/problems/google_photos.md)
+- [Design Live Comments](https://github.com/ranchor/system-design/blob/main/problems/live_comment.md)
 - [Design Instagram](https://github.com/ranchor/system-design/blob/main/problems/instagram.md)
 - [Design YouTube](https://github.com/ranchor/system-design/blob/main/problems/youtube.md)
-- [Design a Search AutoComplete system](https://github.com/ranchor/system-design/blob/main/problems/typehead_suggestion.md)
-- [Design a Google Search](https://github.com/ranchor/system-design/blob/main/problems/distributed_search.md)
-- [Design a Local Delivery]()
+- [Design Google Photos/Photos Storage](https://github.com/ranchor/system-design/blob/main/problems/google_photos.md)
+
+### E-commerce and Reservation Systems
+- [Design a Ecommerce Website](https://github.com/ranchor/system-design/blob/main/problems/ecommerce.md)
 - [Design a Shopping Cart](https://github.com/ranchor/system-design/blob/main/problems/shopping_cart.md)
 - [Design a Inventory Management System](https://github.com/ranchor/system-design/blob/main/problems/inventory_management.md)
+- [Design a Ticketmaster](https://github.com/ranchor/system-design/blob/main/problems/ticketmaster.md)
+- [Design a Hotel Reservation System](https://github.com/ranchor/system-design/blob/main/problems/hotel_reservation_system.md)
+- [Design Price Alert Online System](https://github.com/ranchor/system-design/blob/main/problems/price_tracker.md)
+
+### Financial Systems
 - [Design a Payment System](https://github.com/ranchor/system-design/blob/main/problems/payment_gateway.md)
-- [Design a Ecommerce Website](https://github.com/ranchor/system-design/blob/main/problems/ecommerce.md)
-- [Design a digital wallet](https://github.com/ranchor/system-design/blob/main/problems/digital_wallet.md)
+- [Design a Digital Wallet](https://github.com/ranchor/system-design/blob/main/problems/digital_wallet.md)
+- [Design a Payment Webhook](https://github.com/ranchor/system-design/blob/main/problems/payment_webhook.md)
+- [Design a Ledger System](https://github.com/ranchor/system-design/blob/main/problems/distributed_ledger.md)
+
+### User Requests Traffic
+- [Design LeetCode](https://github.com/ranchor/system-design/blob/main/problems/leetcode.md)
+- [Design Dropbox/Google Drive/File Sharing Service](https://github.com/ranchor/system-design/blob/main/problems/dropbox.md)
 
 
 ## 🗞️ Must-Read Distributed Systems Papers
@@ -147,7 +160,6 @@
 - [designing-data-intensive-applications notes](https://github.com/keyvanakbary/learning-notes/blob/master/books/designing-data-intensive-applications.md)
 - [Alex Wu Books Notes](https://github.com/preslavmihaylov/booknotes/tree/master/system-design/system-design-interview)
 - [systemdesign one](https://systemdesign.one/system-design-interview-cheatsheet/)
-
 
 ## YouTube Channels
 - [ByteByteGo](https://www.youtube.com/@ByteByteGo)
