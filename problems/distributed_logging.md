@@ -177,3 +177,4 @@ Design a distributed logging service that can handle a high volume of log data f
 * https://www.youtube.com/watch?v=p_q-n09B8KA
 * https://levelup.gitconnected.com/designing-a-distributed-logging-system-16521922546a
 * https://www.learnsteps.com/logging-infrastructure-system-design/
+* https://medium.com/@the_infinity/designing-a-logging-library-1e935cef6b52
