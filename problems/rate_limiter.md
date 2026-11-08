@@ -183,7 +183,7 @@ public class RateLimiter {
 * **Cons**
     * Spike in traffic at the edges of a window could cause more requests than the allowed quota to go through.
     ``Example 1: if we set a maximum of 10 message per minute, we don’t want a user to be able to receive 10 messages at 0:59 and 10 more messages at 1:01.``
-![](../resources/problems/rate_limiter/fixed_windows_2.png)
+![](../resources/problems/rate_limiter/fixed_window_2.png)
 
 * **Implementation**
 ```java

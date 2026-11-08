@@ -25,7 +25,7 @@ Eg:
   * If W + R <= N, strong consistency is not guaranteed.
 * Best performance (throughput/availability) when ``1 < r < w < n`` , because reads are more frequent than writes in 
   most applications
-![](../../../resources/sd/quorum_strict.png)
+![](../resources/basics/quorum_strict.png)
 # Sloppy Quorums and Hinted Handoff
 * In a large system, there are many nodes (N) serving different partitions of the database with each row of data 
   replicated on T nodes. If too many home nodes are down, leading to insufficient quorums, others from the remaining 
@@ -34,7 +34,7 @@ Eg:
   * Enforce strict quorum (read-only from home nodes), which offers better consistency.
   * If higher availability is needed, one can enable sloppy quorum for reads as well. This trade-off leads to 
     potential stale reads as ``W + R > T`` does not guarantee an overlap between writes and reads.
-![](../../../resources/sd/quorum_sloppy.png)
+![](../resources/basics/quorum_sloppy.png)
 
 # Examples
 * Dynamo replicates writes to a sloppy quorum of other nodes in the system, instead of a strict majority quorum like Paxos. 

@@ -393,7 +393,7 @@ Lucene is used internally by Elasticsearch. Elasticsearch converts Lucene into a
 ## References
 * Videos
   [![Tech Dummies Narendra L](https://img.youtube.com/vi/CeGtqouT8eA/maxresdefault.jpg)](https://www.youtube.com/watch?v=CeGtqouT8eA)
-  [![Inverted Index](https://img.youtube.com/vi/Wf6HbY2PQDw/maxresdefault.jpg)](https://www.youtube.com/watch?v=Wf6HbY2PQDw)
+  [![Inverted Index](https://img.youtube.com/vi/Wf6HbY2PQDw/hqdefault.jpg)](https://www.youtube.com/watch?v=Wf6HbY2PQDw)
   ![Information Retrieval](https://www.youtube.com/playlist?list=PLaZQkZp6WhWwoDuD6pQCmgVyDbUWl_ZUi)
 * https://www.educative.io/courses/grokking-modern-system-design-interview-for-engineers-managers/system-design-the-distributed-search
 * https://www.hellointerview.com/learn/system-design/answer-keys/tweet-search
