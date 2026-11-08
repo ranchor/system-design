@@ -108,7 +108,7 @@ Return longURL for HTTP redirection
     - Each object is small (less than 1K).
     - No relationships between records—other than storing which user created a URL.
     - Read-heavy.
-    - A [NoSQL](../basics/sql-vs-nosql.md) choice would also be easier to scale.
+    - A [NoSQL](../basics/database_sql_vs_nosql.md) choice would also be easier to scale.
     - Comment: SQL with sharding should also work
 
 - Schema
@@ -292,7 +292,7 @@ guarantee that no duplicates or collision will occur.
     - Unbalanced servers.
 - Hash-Based Partitioning
     - Take a hash of the short URL we are storing, and calculate which partition to use based upon the hash.
-    - Use [consistent hashing](../basics/consistent-hashing.md)
+    - Use [consistent hashing](../basics/consistent_hashing.md)
 ## Cache
 - Eviction policy
     - LRU: discard the least recently used URL first

@@ -133,7 +133,7 @@ PUT /users/{user_id}/preferences
       "custom_key": "custom_value"
     }
     ```
-![](../resources/problems/notification/ios-push-notifications%20(1).png)
+![](../resources/problems/notification/ios-push-notifications.png)
 ### Android Push Notification
 - Use FCM (Firebase Cloud Messaging) to send notifications to Android devices.
 #### Details:

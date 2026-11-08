@@ -132,7 +132,7 @@
 * Ecommerce transactions
 * [Stack Overflow scale pretty well with SQL to handle 800M SQL queries daily (8500 RPS at their peak)](https://www.slideshare.net/InfoQ/scaling-stack-overflow-keeping-it-vertical-by-obsessing-over-performance)
 * Shopify keep up with the traffic for Black Friday and Cyber Monday at 11 Million QPS using MySQL
-* [Uber transitioned from NoSQL to MySQL based storage for their Fulfilment Platform](https://eng.uber.com/fulfillment-platform-rearchitecture/)
+* [Uber transitioned from NoSQL to MySQL based storage for their Fulfilment Platform](https://www.uber.com/blog/fulfillment-platform-rearchitecture/)
 
 ## When to use NoSQL
 * **Unstructured data** - different data entities can have different structure
