@@ -11,15 +11,15 @@ Revision notes for system design interviews, organised in five parts so you can 
 | [Part 4: Interview Problems](#part-4-system-design-interview-problems) | Can I combine all of it into a full design? |
 | [Part 5: Resources](#part-5-resources) | What should I read or watch next? (books, papers, blogs, videos) |
 
-Each note follows the same shape: **TL;DR → core ideas → diagram → trade-offs → interview follow-ups → references**. Diagrams are in `resources/**`; each `.svg` has a matching `.excalidraw` source you can open and edit at [excalidraw.com](https://excalidraw.com). Items marked _(planned)_ don't have notes yet.
+Each note follows the same shape: **TL;DR → core ideas → diagram → trade-offs → interview follow-ups → references**. Diagrams are in `resources/**`; diagrams are SVG files that render directly on GitHub.
 
 **Suggested path:** Part 0 → Part 1 (skim) → Part 3 → Part 4, and dip into Part 2 whenever a "why" comes up.
 
 ---
 
 ## Part 0: Interview Framework
-- Delivery framework: requirements → API → data model → high-level design → deep dives _(planned)_
-- Functional vs non-functional requirements checklist _(planned)_
+- [Delivery framework: requirements → API → data model → high-level design → deep dives](basics/interview_framework.md)
+- [Functional vs non-functional requirements checklist](basics/requirements_checklist.md)
 - [Back of Envelope Estimation](basics/back_of_envelope_estimation.md)
 
 ---
@@ -42,7 +42,7 @@ _What to reach for. Each page: what it is, when to use it, when not to, scaling 
 - [Data File Formats (Parquet, ORC, Avro)](basics/file_formats.md)
 
 ### 1.3 Search
-- Elasticsearch _(planned)_
+- [Elasticsearch](basics/elasticsearch.md)
 
 ### 1.4 Caching
 - [Caching](basics/caching.md)
@@ -51,18 +51,18 @@ _What to reach for. Each page: what it is, when to use it, when not to, scaling 
 
 ### 1.5 Queues & Pub/Sub
 - [Synchronous vs Asynchronous Communication (Queues, Pub/Sub)](basics/asynchronism.md)
-- Kafka _(planned)_
-- SQS _(planned)_
-- Kafka vs SQS _(planned; summary in [Asynchronism](basics/asynchronism.md#interview-follow-ups))_
+- [Kafka](basics/kafka.md)
+- [SQS](basics/sqs.md)
+- [Kafka vs SQS](basics/kafka_vs_sqs.md)
 
 ### 1.6 Stream Processing
 - [Batch Processing vs Stream Processing](basics/bp_sp.md)
 - [Apache Flink](basics/flink.md)
-- Flink vs Spark _(planned)_
+- [Flink vs Spark](basics/flink_vs_spark.md)
 
 ### 1.7 Batch Processing
-- Apache Spark _(planned)_
-- MapReduce _(planned)_
+- [Apache Spark](basics/spark.md)
+- [MapReduce](basics/mapreduce.md)
 
 ### 1.8 Coordination & Locks
 - [Coordination Services (ZooKeeper, etcd)](basics/zookeeper.md)
@@ -81,8 +81,8 @@ _What to reach for. Each page: what it is, when to use it, when not to, scaling 
 - [API Design](basics/api_design.md)
 
 ### 1.11 Geospatial
-- Geohashing and Quadtrees _(planned; used in [Proximity Service](problems/proximity_service.md))_
-- Geospatial Indexes (S2, H3) _(planned)_
+- [Geohashing and Quadtrees](basics/geohash_quadtree.md) (used in [Proximity Service](problems/proximity_service.md))
+- [Geospatial Indexes (S2, H3)](basics/s2_h3.md)
 
 ---
 
@@ -106,17 +106,17 @@ _Why they work. Theory and trade-offs; each page ends with "where it shows up" l
 ### 2.3 Consistency & Ordering
 - [Consistency Models & Patterns](basics/consistency.md)
 - [CAP Theorem and PACELC Theorem](basics/cap_theorem.md)
-- Time & Ordering (physical clocks, Lamport / vector / hybrid logical clocks) _(planned)_
+- [Time & Ordering (physical clocks, Lamport / vector / hybrid logical clocks)](basics/time_ordering.md)
 
 ### 2.4 Transactions & Messaging Guarantees
 - [Transactions, ACID & Isolation Levels](basics/transactions.md)
 - [Distributed Transactions (2PC, 3PC, Saga)](basics/distributed_transactions.md)
 - [Idempotency](basics/idempotency.md)
-- Delivery semantics (at-most / at-least / exactly-once) _(planned)_
+- [Delivery semantics (at-most / at-least / exactly-once)](basics/delivery_semantics.md)
 
 ### 2.5 Agreement
 - [Consensus (Raft, Paxos)](basics/consensus.md)
-- Leader election _(planned)_
+- [Leader election](basics/leader_election.md)
 
 ### 2.6 Failure Handling
 - [Heartbeats & Failure Detection](basics/heartbeats.md)
@@ -127,8 +127,9 @@ _Why they work. Theory and trade-offs; each page ends with "where it shows up" l
 ### 2.7 Data Structures & Storage Internals
 - [Bloom Filters](basics/bloom_filter.md)
 - [Count-Min Sketch](basics/count_min_sketch.md)
-- HyperLogLog, Merkle Trees _(planned)_
-- Write-ahead log, LSM compaction _(planned)_
+- [HyperLogLog](basics/hyperloglog.md)
+- [Merkle Trees](basics/merkle_tree.md)
+- [Write-ahead log, LSM compaction](basics/wal_lsm.md)
 
 ### 2.8 Security & Observability
 - [Security](basics/security.md)
@@ -141,25 +142,25 @@ _Why they work. Theory and trade-offs; each page ends with "where it shows up" l
 _Reusable solutions that combine technologies and concepts. Format: problem it solves → approach → technologies used → trade-offs → example problems._
 
 ### 3.1 Scaling & Performance
-- Scaling reads (replicas, caching, CDN) _(planned)_
-- Scaling writes (sharding, batching, write buffering via queues) _(planned)_
-- Hot keys / hot partitions _(planned)_
-- Fan-out on write vs fan-out on read _(planned)_
-- Rate limiting, backpressure & load shedding _(planned; see [Resilience Patterns](basics/resilience_patterns.md), [Rate Limiter](problems/rate_limiter.md))_
-- Multi-region / geo-distribution _(planned)_
+- [Scaling reads (replicas, caching, CDN)](basics/scaling_reads.md)
+- [Scaling writes (sharding, batching, write buffering via queues)](basics/scaling_writes.md)
+- [Hot keys / hot partitions](basics/hot_keys.md)
+- [Fan-out on write vs fan-out on read](basics/fanout_write_vs_read.md)
+- [Rate limiting, backpressure & load shedding](basics/backpressure_load_shedding.md) (see also [Resilience Patterns](basics/resilience_patterns.md), [Rate Limiter](problems/rate_limiter.md))
+- [Multi-region / geo-distribution](basics/multi_region.md)
 
 ### 3.2 Correctness & Reliability
-- Handling contention (optimistic vs pessimistic locking, distributed locks, queue serialisation) _(planned; see [Transactions](basics/transactions.md), [Distributed Locking](basics/distributed_locking.md))_
-- Multi-step processes (Saga, orchestration vs choreography, workflows) _(planned; see [Distributed Transactions](basics/distributed_transactions.md))_
-- Reliable messaging (outbox, retries, DLQ, deduplication) _(planned; see [Idempotency](basics/idempotency.md))_
-- Long-running tasks (async jobs, workers, scheduling) _(planned; see [Job Scheduler](problems/distributed_job_scheduler.md))_
-- Real-time updates (polling vs SSE vs WebSockets vs pub/sub) _(planned; see [Long Polling, WebSockets, SSE](basics/lp_ws_sse_wh.md))_
-- Large blobs (presigned URLs, chunked / resumable upload) _(planned; see [Blob Storage](basics/blob_storage.md))_
-- Counting & dedup at scale (Bloom, CMS, HLL) _(planned)_
+- [Handling contention (optimistic vs pessimistic locking, distributed locks, queue serialisation)](basics/contention.md) (see also [Transactions](basics/transactions.md), [Distributed Locking](basics/distributed_locking.md))
+- [Multi-step processes (Saga, orchestration vs choreography, workflows)](basics/multi_step_processes.md) (see also [Distributed Transactions](basics/distributed_transactions.md))
+- [Reliable messaging (outbox, retries, DLQ, deduplication)](basics/reliable_messaging.md) (see also [Idempotency](basics/idempotency.md))
+- [Long-running tasks (async jobs, workers, scheduling)](basics/long_running_tasks.md) (see also [Job Scheduler](problems/distributed_job_scheduler.md))
+- [Real-time updates (polling vs SSE vs WebSockets vs pub/sub)](basics/realtime_updates.md) (see also [Long Polling, WebSockets, SSE](basics/lp_ws_sse_wh.md))
+- [Large blobs (presigned URLs, chunked / resumable upload)](basics/large_blobs.md) (see also [Blob Storage](basics/blob_storage.md))
+- [Counting & dedup at scale (Bloom, CMS, HLL)](basics/counting_dedup_at_scale.md)
 
 ### 3.3 Architecture Patterns
 - [Architecture Patterns (SOA, microservices, event-driven)](basics/architecture_patterns.md)
-- Event sourcing, CQRS, change data capture _(planned)_
+- [Event sourcing, CQRS, change data capture](basics/event_sourcing_cqrs_cdc.md)
 - [Design Principles (SOLID)](https://blog.bytebytego.com/p/mastering-design-principles-solid)
 
 ---
@@ -168,14 +169,14 @@ _Reusable solutions that combine technologies and concepts. Format: problem it s
 Each problem lists the **building blocks** (Part 1), **concepts** (Part 2) and **patterns** (Part 3) it uses. Template for new problems: [template.md](template.md)
 
 ### Depth Oriented Problems
-- Design Consistent Hashing _(planned; concept in [Consistent Hashing](basics/consistent_hashing.md))_
+- [Design Consistent Hashing](problems/consistent_hashing_design.md) (concept: [Consistent Hashing](basics/consistent_hashing.md))
 - **[Design Distributed Key-Value Store](problems/key_value_store.md)**
-- Design Content Delivery Network (CDN) _(planned; concept in [CDN](basics/cdn.md))_
+- [Design Content Delivery Network (CDN)](problems/cdn_design.md) (concept: [CDN](basics/cdn.md))
 - **[Design Distributed Cache](problems/distributed_cache.md)**
 - [Design Distributed Message Queue](problems/distributed_message_queue.md)
-- **Design a File Storage System / GFS / HDFS** _(planned)_
-- **Design an Object Storage System / S3** _(planned; concept in [Blob Storage](basics/blob_storage.md))_
-- **Design Distributed Locking Service** _(planned; concept in [Distributed Locking](basics/distributed_locking.md))_
+- **[Design a File Storage System / GFS / HDFS](problems/file_storage_gfs_hdfs.md)**
+- **[Design an Object Storage System / S3](problems/object_storage_s3.md)** (concept: [Blob Storage](basics/blob_storage.md))
+- **[Design Distributed Locking Service](problems/distributed_locking_service.md)** (concept: [Distributed Locking](basics/distributed_locking.md))
 - **[Design Distributed Counters](problems/distributed_counter.md)**
 - [Design Distributed Logging](problems/distributed_logging.md)
 - [Design Metrics Monitoring and Alerting System](problems/distributed_metrics.md)
@@ -203,7 +204,7 @@ Each problem lists the **building blocks** (Part 1), **concepts** (Part 2) and *
 - [Design Nearby Friends](problems/nearby_friends.md)
 - [Design Uber](problems/uber.md)
 - [Design Google Maps](problems/google_maps.md)
-- Design a Local Delivery Service _(planned)_
+- [Design a Local Delivery Service](problems/local_delivery_service.md)
 
 ### Social Media and Communication Systems
 - [Design Chat System/messenger](problems/chat_system.md)
@@ -211,7 +212,7 @@ Each problem lists the **building blocks** (Part 1), **concepts** (Part 2) and *
 - [Design Live Comments](problems/live_comment.md)
 - [Design Instagram](problems/instagram.md)
 - [Design YouTube](problems/youtube.md)
-- Design Google Photos/Photos Storage _(planned)_
+- [Design Google Photos/Photos Storage](problems/google_photos.md)
 - [Design Privacy Controls](problems/privacy_controls.md)
 - [Design a Localization Feature](problems/localization_feature.md)
 
@@ -226,7 +227,7 @@ Each problem lists the **building blocks** (Part 1), **concepts** (Part 2) and *
 
 ### Financial Systems
 - [Design a Payment System](problems/payment_gateway.md)
-- Design a Digital Wallet _(planned)_
+- [Design a Digital Wallet](problems/digital_wallet.md)
 - [Design a Payment Webhook](problems/payment_webhook.md)
 - [Design a Ledger System](problems/distributed_ledger.md)
 
