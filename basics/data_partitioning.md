@@ -1,240 +1,236 @@
-# Data Partitioning
-**Data partitioning** in simple terms is a method of distributing data across multiple tables,
-systems or sites to improve query processing performance and make the data more manageable.
+# Data Partitioning & Sharding
 
-# Partitioning methods
-## Horizontal partitioning — also known as sharding
-* In this strategy, we split the table data horizontally based on the range of values defined by the **partition key**. It is also referred to as database sharding. Smaller partitions are called **shards**.
-- **Pros**:
-  - Spreads the load over more computers and ensures minimal query time.
-  - Each partition has the same schema as the original database, eliminating the need to combine data from multiple partitions for queries.
+> **TL;DR** — **Partitioning** splits data into smaller pieces; **sharding** is horizontal partitioning **across machines**, so
+> storage, write throughput and read throughput scale out. You must make two linked decisions: **what to shard by** (the
+> *shard key*: high cardinality, evenly distributed, present in your hot queries) and **how to place it** (hash by default;
+> range when range scans matter; directory when you need flexibility). Sharding then costs you **hot spots, cross-shard queries,
+> no single-database transactions and resharding pain**, so *don't shard until you've proven one database can't cope* (try
+> indexes, caching, read replicas, bigger hardware and table partitioning first). Most modern databases (Cassandra, DynamoDB,
+> MongoDB, Vitess, Citus, Spanner, CockroachDB) do the mechanics for you; in an interview you need to choose the key and
+> explain the trade-offs. Related: [Consistent Hashing](consistent_hashing.md), [Replication](data_replication.md),
+> [Distributed Transactions](distributed_transactions.md), [Database Indexes](database_indexing.md), [Caching](caching.md).
 
-- **Cons**:
-  - If the value chosen for sharding isn’t chosen carefully, it can lead to unbalanced servers.
+## 1. Partitioning vs sharding
+![](../resources/basics/sharding/partitioning_vs_sharding.svg)
 
-- **Examples**:
-  - MongoDB uses sharding for horizontal partitioning.
+- **Partitioning** (in the narrow sense): split a big table into smaller pieces **inside one database instance** (e.g. one partition per month).
+  A query for last month's orders scans one partition instead of 500M rows; indexes shrink; vacuum/rebuild/retention (`DROP PARTITION`) get cheap.
+  It adds no CPU, memory or disks.
+- **Sharding**: horizontal partitioning **across many machines**; each shard is an independent database with its own CPU, RAM, storage
+  and connection pool. Capacity and throughput grow with shard count.
+- People use the words loosely. Be explicit about whether data lives on **one machine or many**.
+- Two shapes of split: **horizontal** (rows: same columns, different rows per partition) and **vertical** (columns, or whole tables/features
+  moved to their own databases: a "functional split"; cheap and low impact, but each part still scales vertically).
 
+### The scaling ladder: don't shard first
+1. Fix queries and indexes; remove N+1; cache hot reads ([Caching](caching.md)).
+2. Scale up (bigger instance, more RAM/IOPS). Managed relational databases go to tens of TB on one node.
+3. Read replicas for read-heavy load ([Replication](data_replication.md)).
+4. Partition large tables inside the database; archive cold data.
+5. Functional split (vertical): separate services/databases by domain.
+6. **Shard** (or move to a natively distributed database).
 
-![Horizontal Partitioning](../resources/basics/sharding/sharding_horizontal.png)
+The most common interview mistake is **sharding before proving it's necessary**. Do the math first:
 
-## Vertical partitioning
-* Divides the table vertically (by columns), meaning that the structure of the main table changes in the new ones. Divides data for a specific feature to their own server.
-* Divide data for a specific feature to their own server.
-- **Pros**:
-  - Straightforward to implement.
-  - Low impact on the application.
+| Limit hit | Say something like |
+|---|---|
+| **Storage** | "500M users × 5 KB = 2.5 TB; one Postgres node holds that, but at 10× growth we need to shard." |
+| **Write throughput** | "50k writes/s at peak exceeds one primary; replicas don't help writes, so we shard." |
+| **Read throughput** | "Even with replicas and a cache, 100M DAU × several queries needs reads spread across shards." |
 
-- **Cons**:
-  - The system might need to combine data from multiple partitions to answer a query, increasing overall complexity.
-  - To support growth, a database may need further partitioning.
+Pattern: **identify the bottleneck → show one database can't do it → propose sharding**. Use [back-of-envelope numbers](back_of_envelope_estimation.md).
 
-- **Examples**:
-  - Amazon Aurora uses vertical partitioning for certain applications.
+## 2. Choosing a shard key
+The shard key decides which shard owns a row. It is **expensive to change**, so get it right.
 
-![Vertical Partitioning](../resources/basics/sharding/sharding_vertical.png)
+A good shard key has:
+- **High cardinality**: many distinct values. A boolean caps you at two shards.
+- **Even distribution** of data **and traffic**: `country` fails if 90% of users are in one country.
+- **Alignment with queries**: your most common queries should touch **one shard** (`WHERE user_id = ?`).
+- **Stability**: values that don't change (moving a row between shards on update is painful).
+- **Not monotonic** (for write-heavy tables): timestamps and auto-increment IDs funnel all new writes to the newest shard.
 
-## Directory-based partitioning
-* A lookup service that knows the partitioning scheme and abstracts it away from the database access code. Allow the addition of DB servers or change of partitioning schema without impacting the application.
-- **Cons**:
-  - Can be a single point of failure.
+| 🟢 Good | Why |
+|---|---|
+| `user_id` for a user-centric app | High cardinality, even, profile/feed/orders queries are user-scoped |
+| `order_id` for an orders table | High cardinality, lookups by order |
+| `tenant_id` (+ `user_id`) for B2B SaaS | Tenant isolation; compound to avoid one huge tenant dominating |
+| `conversation_id` for chat | All messages of a thread live together ([chat system](../problems/chat_system.md)) |
 
-- **Examples**:
-  - Facebook uses a directory-based partitioning system for its user database.
-![Directory-based Partitioning](../resources/basics/sharding/sharding_directory.png)
+| 🔴 Bad | Why |
+|---|---|
+| `is_premium` (boolean) | Two values, two shards, skewed |
+| `created_at` on a growing table | Newest shard takes all writes |
+| `country` | Few values, heavy skew |
+| A key not used in hot queries | Every query scatter-gathers across all shards |
 
-## Range Based Partitioning
+Pick the key from **access patterns first** (derive them from your APIs), not from the entity list. Co-locate data that is queried or
+transacted together (a user's profile, orders and balances on the same shard) so most operations are single-shard.
+
+## 3. Sharding strategies (how to place a key)
+![](../resources/basics/sharding/sharding_strategies.svg)
+
+| Strategy | Placement | Strengths | Weaknesses |
+|---|---|---|---|
+| **Range** | Contiguous key ranges → shards | Efficient range scans; simple; good for multi-tenant ranges | Hot spots on monotonic keys; ranges must be chosen/rebalanced |
+| **Hash** *(default)* | `hash(key) mod N`, or hash space split into ranges/tokens | Even spread; fewer hot spots | No range scans on the key; modulo reshuffles on resize (use consistent hashing or fixed virtual shards) |
+| **Directory (lookup)** | Mapping table/service key → shard | Maximum flexibility (isolate a celebrity, rebalance by editing a row) | Extra lookup per request; the directory is a critical dependency/SPOF, so cache + replicate it |
+
+- Hash-based is what an interviewer assumes unless you say otherwise. Directory-based is rarely the right interview answer because it invites follow-ups about the lookup service's availability and latency.
+- **Hash + range hybrid** (compound keys): `(tenant_id, hash(user_id))`, or Cassandra's `(partition key, clustering key)`: even spread across partitions, ordered scans within one.
+
+### More partitioning schemes (database-level)
+The same ideas appear as table-partitioning options in Postgres/MySQL/Oracle:
+
+#### Range partitioning
+```sql
+PARTITION BY RANGE (store_id) (
+  PARTITION p0 VALUES LESS THAN (6),
+  PARTITION p1 VALUES LESS THAN (11),
+  PARTITION p2 VALUES LESS THAN (16),
+  PARTITION p3 VALUES LESS THAN (21));
+```
 ![](../resources/basics/sharding/key_range.png)
-- **Description**: Assigns rows to partitions based on column values falling within a given range.
-- **Example**: 
-  ```sql
-  PARTITION BY RANGE (store_id) (
-      PARTITION p0 VALUES LESS THAN (6),
-      PARTITION p1 VALUES LESS THAN (11),
-      PARTITION p2 VALUES LESS THAN (16),
-      PARTITION p3 VALUES LESS THAN (21)
-  );
-  ```
+- Pros: simple; great for range queries and **time-based retention** (drop an old partition instantly). Cons: unbalanced if data is skewed; timestamp ranges create write hot spots.
 
-- **Pros**:
-  - Simple to implement and understand.
-  - Efficient for range queries.
+#### Hash (key) partitioning
+```sql
+CREATE TABLE employees (id INT NOT NULL, hired DATE NOT NULL, store_id INT)
+PARTITION BY HASH(store_id) PARTITIONS 4;
+```
+- Pros: even distribution, fewer hot spots. Cons: no range queries on the key; changing the partition count rehashes data; a very active key is still hot (celebrity problem).
+- Cassandra and DynamoDB hash the partition key. See [consistent hashing](consistent_hashing.md).
 
-- **Cons**:
-  - Can lead to unbalanced partitions if data is not uniformly distributed.
-  - Have to actually determine the ranges to make sure they are relatively even in data and load (can be done manually or by database)
-  - Can easily lead to hotspots (if for example partitioning by range of timestamps)
-
-- **Examples**:
-  - MySQL supports range partitioning.
-
-## Key or Hash-based Partitioning
-
-- **Description**: Applies a hash function to some key attribute of the entry to get the partition number.
-- **Example**: 
-  ```sql
-  CREATE TABLE employees (
-      id INT NOT NULL,
-      fname VARCHAR(30),
-      lname VARCHAR(30),
-      hired DATE NOT NULL DEFAULT '1970-01-01',
-      separated DATE NOT NULL DEFAULT '9999-12-31',
-      job_code INT,
-      store_id INT
-  )
-  PARTITION BY HASH(YEAR(hired))
-  PARTITIONS 4;
-  ```
-
-- **Pros**:
-  - Distributes data evenly across partitions.
-  - Reduces the chance of hotspots.
-
-- **Cons**:
-  - Adding new servers may require changing the hash function, which would need redistribution of data and downtime.
-  - No more range queries on the partition key, have to check every partition
-  - If a key has a lot of activity will still lead to hot spots Celebrity Problem
-
-- **Examples**:
-  - Cassandra uses hash-based partitioning with consistent hashing to distribute data.
-
-## List-Based Partitioning
-
-- **Description**: Similar to range partitioning but selects the partition based on columns matching one of a set of discrete values.
-- **Example**: 
-  ```sql
-  PARTITION BY LIST(store_id) (
-      PARTITION pNorth VALUES IN (3, 5, 6, 9, 17),
-      PARTITION pEast VALUES IN (1, 2, 10, 11, 19, 20),
-      PARTITION pWest VALUES IN (4, 12, 13, 14, 18),
-      PARTITION pCentral VALUES IN (7, 8, 15, 16)
-  );
-  ```
-
-- **Pros**:
-  - Flexible for categorically partitioned data.
-  - Easier to manage specific groups of values.
-
-- **Cons**:
-  - Can lead to unbalanced partitions if the distribution of values is not uniform.
-
-- **Examples**:
-  - Oracle supports list partitioning.
+#### List partitioning
+```sql
+PARTITION BY LIST(store_id) (
+  PARTITION pNorth VALUES IN (3, 5, 6, 9, 17),
+  PARTITION pEast  VALUES IN (1, 2, 10, 11, 19, 20));
+```
+- Pros: natural for categorical/regional data (data residency). Cons: skew if categories are uneven.
 
 ![Partitioning Criteria](../resources/basics/sharding/sharding_criteria.png)
 
-## Round-robin Partitioning
+#### Round-robin
+- Row *i* goes to partition `i mod n`. Perfectly even writes, but no locality, so reads must hit every partition. Used for bulk loading and some analytics engines.
 
-- **Description**: Distributes rows evenly across partitions in a round-robin fashion.
-- **Example**:
-  - With `n` partitions, the `i`th tuple is assigned to partition `i % n`.
-
-- **Pros**:
-  - Simple to implement.
-  - Ensures even distribution of data.
-
-- **Cons**:
-  - Not suitable for queries that need range scans.
-
-- **Examples**:
-  - Some implementations in distributed systems use round-robin partitioning.
-
-## Composite Partitioning
-
-- **Description**: Combines multiple partitioning schemes to devise a new scheme.
-- **Consistent Hashing**: Combines hash and list partitioning.
-  - **Key** -> **Reduced key space through hash** -> **List** -> **Partition**.
-- **Types of Composite Partitioning**:
-  - Composite Range–Range Partitioning
-  - Composite Range–Hash Partitioning
-  - Composite Range–List Partitioning
-  - Composite List–Range Partitioning
-  - Composite List–Hash Partitioning
-  - Composite List–List Partitioning
-
-- **Pros**:
-  - Can optimize for various query types.
-  - Balances load more effectively.
-
-- **Cons**:
-  - Complexity in implementation and management.
-
+#### Composite partitioning
+- Combine schemes (range then hash, list then range, …) to balance load and support multiple query types: e.g. partition by month (range) and sub-partition by `user_id` hash.
 ![Composite Partitioning](../resources/basics/sharding/sharding_criteria_composite.png)
+- Pros: tune for several query shapes. Cons: operational complexity.
 
-# Secondary Index Partitioning Options
-Secondary indexes need to be partitioned similarly to the primary data to ensure query efficiency and data locality. Various strategies include:
+#### Horizontal, vertical and directory pictures
+![Horizontal Partitioning](../resources/basics/sharding/sharding_horizontal.png)
+![Vertical Partitioning](../resources/basics/sharding/sharding_vertical.png)
+![Directory-based Partitioning](../resources/basics/sharding/sharding_directory.png)
 
-## Partitioning Secondary Index by Document (Local Index)
-### Pros
-- Fast on write because all data that is being kept track of is being stored locally on the partition.
+## 4. Secondary indexes on partitioned data
+Queries by something other than the shard key need an index. Two designs ([Indexes](database_indexing.md)):
 
-### Cons
-- Slow on read because if using a secondary index, you have to query every partition to accumulate the index results.
+| | **Local index (by document)** | **Global index (by term)** |
+|---|---|---|
+| Where | Each shard indexes only its own rows | The index itself is partitioned by the indexed value |
+| Writes | **Fast**: one shard | **Slow**: update the data shard *and* index shard(s); may need a distributed transaction or async update |
+| Reads | **Slow**: scatter-gather every shard | **Fast**: one index shard (then fetch rows) |
+| Consistency | Immediate | Often **eventually consistent** (e.g. DynamoDB GSI) |
 
+Choose local indexes for write-heavy systems and queries that include the shard key; global for read-heavy lookups by another attribute. Alternatively, keep a **separate lookup table** (`email → user_id`) sharded by that attribute, which is the manual global index.
 
-## Partitioning Secondary Index by Term (Global Index)
-### Pros
-- Fast on read because all data for that index is being kept on one partition node.
+## 5. Problems after you shard
+![](../resources/basics/sharding/sharding_problems.svg)
 
-### Cons
-- Slow on write because you need to write to multiple partitions to update all of the various secondary indexes.
-- May require a distributed transaction (imagine the case where one write succeeds and the other fails).
+### Hot spots and load imbalance
+- Even with a good key, some keys are inherently busy: the **celebrity problem** (a famous user's shard takes 1000× traffic) or the **time-based** key (all writes hit the newest shard). Hashing doesn't fix a hot *key*.
+- **Detect**: per-shard QPS, CPU, p99 latency, storage; per-key sampling.
+- **Fixes**: isolate hot keys on dedicated shards (directory); **compound/salted keys** (`hash(user_id, day)` or `key#0..N` for hot counters, summed on read); cache and replicate hot reads, an in-process L1; rate limit; **automatic split + move** (MongoDB's balancer splits/migrates chunks; Vitess supports **operator-driven** online resharding, not automatic).
+- See [Caching: hot keys](caching.md#hot-keys).
 
+### Cross-shard operations (scatter-gather)
+- A query not aligned with the shard key must hit **all N shards**, wait for the slowest and merge: **N× the calls and the tail latency of the slowest shard**.
+- **Reduce them**: cache or precompute global results (trending, top-K, leaderboards) with background jobs; **denormalize** so one shard can answer; accept rare scatter-gather (an admin dashboard); design the key around the hot query.
+- **Joins** across shards are expensive; co-locate joined entities on the same shard key or denormalize. If your *common* path needs scatter-gather, rethink the key.
 
-# Common Problems of Sharding
-## Joins and Denormalization
-- **Problem**: Joins are not performance-efficient since data has to be compiled from multiple servers.
-- **Workaround**: Denormalize the database so that queries can be performed from a single table. This can lead to data inconsistency.
+### Consistency and transactions
+- A transaction spanning shards is no longer a single-database transaction.
+- **Best**: design so each transaction is **single-shard** (a user's account, balance and history on one shard).
+- **Two-phase commit (2PC)** gives atomicity but is slow and blocks if the coordinator or a shard fails; most systems avoid it ([Distributed Transactions](distributed_transactions.md)).
+- **Sagas**: a sequence of local transactions with **compensating actions** (debit A on shard 1 → credit B on shard 2 → if that fails, refund A). Eventually consistent, needs idempotent steps ([Idempotency](idempotency.md)).
+- **Accept eventual consistency** for denormalized counters and feeds. If you constantly need distributed transactions, the shard key or boundaries are probably wrong. Distributed SQL such as [Aurora DSQL](aurora_dsql.md), Spanner or CockroachDB hides this at a latency cost.
 
-## Referential Integrity
-- **Problem**: Difficult to enforce data integrity constraints (e.g., foreign keys).
-- **Workaround**:
-  - Referential integrity enforced by application code.
-  - Applications run SQL jobs to clean up dangling references.
+### Referential integrity
+- Foreign keys can't span shards. Enforce in the application, use co-location, and run cleanup jobs for dangling references.
 
-## Rebalancing Partitions
-- **Problem**: Necessity of rebalancing due to unbalanced data distribution or high load on one shard.
-- **Solution**: Create more database shards or rebalance existing shards, which changes the partitioning scheme and requires data movement.
+### Rebalancing and resharding
+Changing shard count or boundaries moves data and is operationally risky. Strategies:
 
-### Various Strategies for Rebalancing
-#### Fixed Number of Partitions
-- Predefine a fixed number of partitions to ensure easier management but may need to over-provision.
+| Strategy | How | Notes |
+|---|---|---|
+| **Fixed number of partitions** | Create many more partitions than nodes (e.g. 1024); move **whole partitions** between nodes when nodes join/leave | Simple; never rehash keys; pick a good number up front (Elasticsearch, Kafka, Couchbase, Riak) |
+| **Fixed partitions per node / consistent hashing with vnodes** | Each node owns a fixed count of token ranges; new nodes steal slices | Even, incremental (Cassandra) |
+| **Dynamic splitting** | Split a partition when it grows/gets hot; merge when small | Adapts automatically; risk of needless rebalancing and extra load (HBase, MongoDB, DynamoDB) |
+| **Manual / directory** | Operator updates the mapping | Full control, more toil |
 
-#### Dynamic Partitioning
-- Adjust the number of partitions based on current load and size, providing flexibility but requiring complex management.
+- Avoid `hash(key) % N` if N changes: **almost every key moves**. Use [consistent hashing](consistent_hashing.md) or fixed virtual shards.
+- Resharding recipe: **dual-write or CDC-copy → verify → cut reads → cut writes → drop old**; throttle to protect production; keep the old layout until verified.
+- Automatic rebalancing is convenient but can cause **thrashing** during failures; many systems keep a human in the loop.
 
-#### Fixed Number of Partitions per Node
-- Allocate a fixed number of partitions per node, balancing between fixed and dynamic approaches.
-
-
-# Request Routing Strategies
+## 6. Request routing (how does a client find the shard?)
 ![](../resources/basics/sharding/request_routing.png)
-## Random Assignment to Any Node
-- Requests are randomly assigned to any available node, ensuring even load distribution then can use gossip protocol to route to specific node.
+1. **Any node** (random) → the node forwards to the owner (gossip-based membership; Cassandra coordinator). See [Gossip](gossip_protocol.md).
+2. **Routing tier / proxy** that knows the map (mongos, Vitess `vtgate`, Twemproxy): centralizes logic; a stateless, scalable hop.
+3. **Smart client** with the partition map cached (Redis Cluster clients, DynamoDB SDK): lowest latency; clients must handle map changes (`MOVED` redirects).
+- The shard map lives in a coordination service ([ZooKeeper](zookeeper.md), etcd) or a metadata cluster (MongoDB config servers). It must be highly available and cached.
 
-## Client-based Routing
-- The client has the logic to determine the correct partition for a request, reducing the need for additional routing infrastructure.
+## 7. Sharding in modern databases
+You rarely build sharding by hand.
 
-## Proxy-based Routing
-- Requests are routed through a proxy server that directs them to the correct partition, centralizing routing logic and management.
+| System | How it shards |
+|---|---|
+| **Cassandra** | Murmur3 partitioner + virtual nodes on a consistent-hash ring ([Cassandra](cassandra.md)) |
+| **DynamoDB** | Hashes the partition key to internal partitions; splits/merges automatically; not a user-visible ring ([DynamoDB](dynamodb.md)) |
+| **MongoDB** | Range-based **chunks** on the shard key (ranged or hashed); a balancer splits and migrates them; `mongos` routes ([MongoDB](mongodb.md)) |
+| **Redis Cluster** | 16,384 hash slots mapped to nodes; smart clients |
+| **Vitess / Citus** | Sharding layers over MySQL / Postgres: routing, cross-shard queries, online resharding ([Postgres & MySQL](postgres_mysql.md)) |
+| **Spanner / CockroachDB / TiDB / Aurora DSQL** | Distributed SQL with automatic range/tablet splitting and distributed transactions ([Aurora DSQL](aurora_dsql.md)) |
 
+In an interview it's enough to say: *"DynamoDB with `user_id` as the partition key"* or *"Vitess sharded by `user_id`, with operator-driven online resharding."*
 
-# Sharding Summary
-## Partitioning Methodology
-- Key ranges are better when we need to perform range queries.
-- Key hash ranges are better when we want to more evenly distribute data.
+## 8. What to say in an interview
+1. **Establish need**: the bottleneck, the numbers, why replicas/cache/bigger box aren't enough.
+2. **Propose the shard key from access patterns**: "Queries are user-scoped, so `user_id`."
+3. **Choose placement**: "Hash-based with consistent hashing / 64 fixed virtual shards to start."
+4. **Call out trade-offs**: global queries are expensive → cache/precompute; hot users → isolate/salt/replicate; cross-shard writes → single-shard design or sagas.
+5. **Growth plan**: "Start with 64 logical shards on fewer machines; add machines and move whole shards."
 
-## Index Choices
-- Local indexes optimize for write speed.
-- Global indexes optimize for read speed.
+## 9. Pitfalls checklist
+- Sharding too early; sharding without a shard key that matches the hot queries; boolean/low-cardinality/skewed keys.
+- Monotonic keys (timestamps, auto-increment) on write-heavy tables; ignoring the celebrity key.
+- `hash % N` with changing N; no plan for resharding; resharding without dual-write/verify.
+- Common queries that scatter-gather; cross-shard joins; relying on 2PC for hot paths.
+- Global secondary indexes treated as strongly consistent; unique constraints that span shards (needs a global uniqueness mechanism).
+- Non-sharded global ID generation that collides across shards (use [unique ID generators](../problems/unique_id_generator.md)).
+- Forgetting operational realities: per-shard backups, schema migrations across N shards, monitoring per-shard skew.
 
-## Rebalancing Choices
-- Fixed number of partitions is simpler to reason about but requires choosing a good number.
-- A changing number of partitions may scale better, but doing so automatically may lead to unnecessary rebalancing and putting extra stress on our databases.
+## 10. Summary
+- **Key ranges** for range queries; **hashes** for even distribution; **directory** for flexibility.
+- **Local indexes** favor writes; **global indexes** favor reads.
+- **Fixed virtual partitions** are simplest to reason about; **dynamic splitting** adapts but can thrash.
+- Shard key = the access pattern; keep each transaction on one shard.
+
+## 11. Interview follow-ups
+- *"How do you pick a shard key?"* High cardinality, even, stable, present in hot queries; avoid monotonic and low-cardinality keys.
+- *"What if one user is 1000× busier?"* Isolate on a dedicated shard, salt/compound the key, replicate reads, cache, rate limit.
+- *"How do you add a shard?"* Consistent hashing or fixed virtual shards (move whole shards); CDC-copy, verify, cut over; throttle.
+- *"How do you do a query by email when sharded by user_id?"* A global secondary index or a lookup table `email → user_id` (eventually consistent) or scatter-gather if rare.
+- *"How do you transfer money between users on different shards?"* Avoid by design; else saga with idempotent compensations, or distributed SQL.
+- *"Sharding vs replication?"* Replication copies the **same** data for availability and read scale; sharding splits **different** data for capacity and write scale; production systems use both (each shard is replicated).
+- *"Partitioning vs sharding?"* Same technique at different scope: within one database vs across machines.
 
 # References
-* DDIA-Chapter6
+* Designing Data-Intensive Applications, Chapter 6 (Partitioning)
+* [Hello Interview: Sharding](https://www.hellointerview.com/learn/system-design/core-concepts/sharding)
 * [grokking-the-system-design-interview](https://www.educative.io/courses/grokking-the-system-design-interview/mEN8lJXV1LA)
+* [MongoDB Sharding docs](https://www.mongodb.com/docs/manual/sharding/), [Vitess docs](https://vitess.io/docs/), [Citus docs](https://docs.citusdata.com/)
+* [MySQL partitioning](https://dev.mysql.com/doc/mysql-partitioning-excerpt/5.7/en/partitioning.html), [PostgreSQL table partitioning](https://www.postgresql.org/docs/current/ddl-partitioning.html)
 * https://medium.com/must-know-computer-science/system-design-sharding-data-partitioning-b7201596aafa
-* https://dev.mysql.com/doc/mysql-partitioning-excerpt/5.7/en/partitioning.html
 * https://docs.google.com/presentation/d/1ZNVDn4Uwcje1yYPz40C5mkJWBazkQ5W1XhSyhZTbRE0/edit

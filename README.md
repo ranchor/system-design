@@ -95,6 +95,7 @@ _Why they work. Theory and trade-offs; each page ends with "where it shows up" l
 - [Reliability](basics/reliability.md)
 - [OSI Model](basics/osi_model.md)
 - [TCP vs UDP (and HTTP/1.1, 2, 3)](basics/tcp_udp.md)
+- [Data Modeling (entities, keys, indexes, normalization)](basics/data_modeling.md)
 
 ### 2.2 Distributing Data
 - [Data Partitioning / Sharding](basics/data_partitioning.md)
