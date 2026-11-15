@@ -22,6 +22,8 @@
 | **Monotonic writes / consistent prefix** | A client's writes are applied in order; readers never see an answer before its question | Per-partition ordering | Chat messages |
 | **Eventual** | If writes stop, all replicas converge *eventually*; no bound on staleness | Async replication, anti-entropy, read repair | DNS, Cassandra `ONE`, S3 listing (historically), CDN caches |
 
+> Why the trade-off exists, and what it costs even when nothing fails, is covered in [CAP Theorem and PACELC](cap_theorem.md).
+
 ## Weak vs eventual vs strong (the classic primer framing)
 * **Weak**: after a write, reads may or may not see it. Best effort (VoIP, live video, multiplayer game state).
 * **Eventual**: reads will see it *eventually* (typically milliseconds). Email, DNS, social likes counters.

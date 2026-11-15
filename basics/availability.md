@@ -58,6 +58,11 @@ Rule of thumb: each extra nine costs roughly 10x more engineering effort and mon
 
 ### Other techniques
 * **Health checks + automatic removal** from the load balancer.
+* **Replication**: keep copies of data on several nodes/AZs so a node loss doesn't lose availability or data ([Replication](data_replication.md)).
+* **Load balancing**: spread traffic across redundant servers so no single server is overwhelmed ([Load Balancing](load_balancing.md)).
+* **Sharding**: split data so a failure or overload affects only a slice, not everything ([Sharding](data_partitioning.md)).
+* **Caching**: serve hot reads from memory to cut latency and shield the database from load spikes ([Caching](caching.md)).
+* **Consistency vs availability under partitions**: see [CAP & PACELC](cap_theorem.md).
 * **Graceful degradation**: serve stale cache or a reduced feature set instead of failing (for example, show the
   feed without recommendations).
 * **Load shedding and rate limiting** to protect the core path during overload.
