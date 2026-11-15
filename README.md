@@ -84,6 +84,10 @@ _What to reach for. Each page: what it is, when to use it, when not to, scaling 
 - [Geohashing and Quadtrees](basics/geohash_quadtree.md) (used in [Proximity Service](problems/proximity_service.md))
 - [Geospatial Indexes (S2, H3)](basics/s2_h3.md)
 
+### 1.12 LLM Inference & Serving
+- [Disaggregated Serving](basics/disaggregated_serving.md)
+- [Prefill/Decode Disaggregated Serving](basics/prefill_decode_disaggregation.md)
+
 ---
 
 ## Part 2: Core Concepts
