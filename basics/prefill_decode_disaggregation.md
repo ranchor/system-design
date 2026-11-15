@@ -20,6 +20,34 @@
 | **Throughput** | Tokens/s/GPU | Batch size, utilization |
 | **Goodput** | Requests/s that meet *both* TTFT and TPOT SLOs | What disaggregation actually optimizes |
 
+## Prefill operations in detail
+What a prefill worker actually does for one request with `N` prompt tokens:
+
+| Step | Operation | Notes |
+|---|---|---|
+| 1. Admission & scheduling | Queue the request; pick it into a batch under a **token budget** (e.g. a max number of tokens per forward pass), not a request count | Queueing delay here is a large part of TTFT; shortest-job-first helps tail TTFT |
+| 2. Prefix-cache lookup | Hash/match the prompt against cached KV blocks (radix tree / block hashes); **reuse matched prefix blocks** and compute only the uncached suffix | Big win for shared system prompts, few-shot examples, multi-turn chat ([Caching](caching.md)) |
+| 3. Tokenize & embed | Tokenization (CPU), embedding lookup for each token (+ positional encoding such as RoPE applied in attention) | Multimodal: encoder output embeddings are spliced in here ([Disaggregated serving](disaggregated_serving.md)) |
+| 4. Per layer: QKV projection | Large matrix multiplies over all `N` tokens at once (GEMMs) | The compute-dense part; high arithmetic intensity, good tensor-core utilization |
+| 5. Per layer: attention | Causal self-attention over the prompt using a fused kernel (**FlashAttention**-style, tiled to avoid materializing the `N×N` matrix) | Cost grows ~`O(N²)`; dominates for very long prompts |
+| 6. Write KV cache | Store the layer's **K and V** for all `N` tokens into paged KV blocks | This is the artifact decode needs; its size is what gets transferred in disaggregated mode |
+| 7. Per layer: output projection + FFN/MoE | Dense FFN GEMMs, or router + expert GEMMs for MoE; residuals and norms | ~2/3 of FLOPs for typical dense models at moderate `N` |
+| 8. Tensor-parallel sync | **All-reduce** after attention and FFN when using tensor parallelism | Needs NVLink-class bandwidth; adds latency that grows with TP degree |
+| 9. Final layer & first token | Compute logits **only for the last position**, apply sampling (temperature/top-p), emit token #1 | **TTFT** ends here; in P/D mode the KV blocks + token #1 are then handed to the decode pool |
+
+**Cost model.** Prefill FLOPs ≈ `2 × parameters × N` for the dense parts (plus the quadratic attention term). A 70B model on a 4K-token prompt is on the order of ~5.6×10^14 FLOPs, so a single request can saturate GPUs for a noticeable fraction of a second. Because the work is large and parallel across tokens, **prefill is compute-bound even at batch size 1**, so batching more requests helps little once the token budget fills the GPU; that is the opposite of decode.
+
+**Techniques that shape prefill:**
+- **Chunked prefill**: split a long prompt into chunks (e.g. 512-2048 tokens), process one chunk per iteration, optionally mixed with decode tokens ("stall-free batching"). Bounds the time any one prefill blocks others; each chunk attends to the KV already written by earlier chunks.
+- **Token-budget batching**: pack several short prompts into one forward pass up to the budget; cap very long prompts via chunking.
+- **Prefix caching / KV reuse**: skip recomputation of shared prefixes; routers send requests to workers that already hold the prefix.
+- **Context/sequence parallelism** (ring attention, context parallel): split a very long prompt across GPUs so a single prefill fits in memory and finishes faster.
+- **Kernel optimizations**: FlashAttention, fused QKV/FFN kernels, FP8/FP4 quantized GEMMs, CUDA graphs less relevant here (variable shapes) than in decode.
+- **Pipelined KV transfer**: stream each layer's KV to the decode worker as soon as that layer finishes, overlapping network with the remaining layers' compute.
+- **Prefill-only SLOs**: TTFT budget = queue wait + prefill compute + (in P/D mode) first-hop KV transfer setup; monitor each part separately.
+
+**What can go wrong in prefill:** long prompts monopolizing a worker (head-of-line blocking; use chunking and priority queues), out-of-memory from huge activation or KV allocations, cache-miss storms after a deploy that clears the prefix cache, and uneven prompt-length distribution making a fixed batch size inefficient ([Hot keys](hot_keys.md), [Backpressure](backpressure_load_shedding.md)).
+
 ## The problem with colocation
 - **Prefill-decode interference**: with continuous batching, a long prompt's prefill occupies the GPU for 100s of ms-seconds, delaying every in-flight decode step → **TPOT spikes / jitter**. Conversely, decode-heavy batches slow prefills → higher TTFT.
 - **Coupled configuration**: ideal tensor/pipeline parallelism, batch size and even GPU type differ per phase, but a colocated replica has one.
