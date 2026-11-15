@@ -34,6 +34,8 @@ scaling model or latency profile. It is *not* one thing; there are four core fam
 
 Details, pitfalls and a "same data in five models" diagram are in [Types of Databases](database_types.md).
 
+**Deep dives:** [PostgreSQL & MySQL](postgres_mysql.md) · [DynamoDB](dynamodb.md) · [Cassandra](cassandra.md) · [MongoDB](mongodb.md) · [Aurora DSQL (distributed SQL)](aurora_dsql.md).
+
 ## Head-to-head
 | Attribute | Relational (SQL) | NoSQL |
 |---|---|---|
@@ -147,7 +149,7 @@ The term "NewSQL" dates to ~2011, and the broader label today is **distributed S
 | **CockroachDB** | Postgres-compatible, Raft per range, hybrid logical clocks, serializable isolation by default. |
 | **TiDB** | MySQL-compatible; TiKV (Raft) storage; optional **TiFlash** columnar replicas for HTAP. |
 | **YugabyteDB** | Postgres-compatible query layer on a Raft-replicated DocDB store. |
-| **Amazon Aurora DSQL** | Serverless, active-active across regions with a witness region, Postgres-compatible subset, **optimistic concurrency control with snapshot isolation**, so the application must **retry** on commit conflicts. GA since May 2025. |
+| **Amazon Aurora DSQL** ([deep dive](aurora_dsql.md)) | Serverless, active-active across regions with a witness region, Postgres-compatible subset, **optimistic concurrency control with snapshot isolation**, so the application must **retry** on commit conflicts. GA since May 2025. |
 | Vitess / Citus | *Not quite NewSQL*: sharding layers over MySQL/Postgres. You still pick shard keys and cross-shard transactions are limited. |
 
 **What you gain**

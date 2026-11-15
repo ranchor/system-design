@@ -17,6 +17,8 @@
 * They are kept separate on purpose: an interviewer asks "which database would you use?" (this note) and then
   "why not the other one?" (that note).
 
+**Deep dives:** [PostgreSQL & MySQL](postgres_mysql.md) · [DynamoDB](dynamodb.md) · [Cassandra](cassandra.md) · [MongoDB](mongodb.md) · [Aurora DSQL (distributed SQL)](aurora_dsql.md).
+
 ## The map
 ![](../resources/basics/database_types/nosql_families.svg)
 

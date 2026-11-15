@@ -31,9 +31,11 @@ _What to reach for. Each page: what it is, when to use it, when not to, scaling 
 - [Types of Databases (landscape & how to choose)](basics/database_types.md)
 - [SQL vs NoSQL (and NewSQL / distributed SQL)](basics/database_sql_vs_nosql.md)
 - [Database Indexes (B-Tree vs LSM-Tree)](basics/database_indexing.md)
-- Postgres / MySQL _(planned)_
-- DynamoDB / Cassandra _(planned)_
-- MongoDB _(planned)_
+- [PostgreSQL & MySQL (relational deep dive)](basics/postgres_mysql.md)
+- [DynamoDB](basics/dynamodb.md)
+- [Cassandra](basics/cassandra.md)
+- [MongoDB](basics/mongodb.md)
+- [Distributed SQL deep dive: Amazon Aurora DSQL](basics/aurora_dsql.md)
 
 ### 1.2 Blob / Object Storage
 - [Blob / Object Storage](basics/blob_storage.md)
