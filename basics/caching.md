@@ -198,7 +198,7 @@ def get_with_singleflight(key, loader, ttl):
 
 ### Hot keys
 - One key (a celebrity profile, a viral item) receives vastly more traffic than others and saturates a single shard even though the hit rate is high.
-- **Fix**: replicate the value across several keys/nodes (`user:taylor#0..N`, read a random one); add a short-TTL **in-process** L1; rate limit abusive patterns; split counters. See also the "Scaling Reads" pattern in [Scalability](scalability.md).
+- **Fix**: replicate the value across several keys/nodes (`user:taylor#0..N`, read a random one); add a short-TTL **in-process** L1; rate limit abusive patterns; split counters.
 - Detect with per-key QPS metrics (e.g. Redis `--hotkeys`, client-side sampling).
 
 ### Big keys
