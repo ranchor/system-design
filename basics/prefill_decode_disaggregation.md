@@ -63,6 +63,23 @@ Sizing intuition: KV size ∝ prompt tokens; transfer time = KV bytes ÷ bandwid
 ## Where it's used
 Research: **DistServe** (OSDI '24), **Splitwise** (ISCA '24), **Mooncake** (Kimi; KV-centric disaggregation, FAST '25), **TetriInfer**. Systems: **vLLM** (disaggregated prefill connectors), **SGLang**, **NVIDIA Dynamo**, **llm-d** (Kubernetes-native, vLLM-based), TensorRT-LLM; large providers run P/D splits internally. Check each project's current docs for maturity and supported transports (this area changes quickly).
 
+## Case study: NVIDIA Dynamo
+Dynamo (announced March 2025 as the successor to Triton Inference Server for multi-node generative AI; open source on GitHub, `ai-dynamo/dynamo`) is a good concrete example of the architecture above. It supports TensorRT-LLM, vLLM, SGLang and PyTorch backends. Its four components map directly to the design pieces in this note:
+
+| Dynamo component | Role | Maps to |
+|---|---|---|
+| **Planner** | Watches GPU capacity and latency targets; decides per request whether to disaggregate, and shifts/adds GPUs between the prefill and decode pools | Control plane: autoscaling the P:D ratio |
+| **Smart Router** | Tracks where KV blocks live across the cluster (radix-tree hashing of prompts), scores cache overlap, and balances reuse against load, instead of round-robin | Prefix-cache-aware routing ([Consistent hashing](consistent_hashing.md)) |
+| **Distributed KV Cache Manager** | Offloads cold KV blocks from HBM to CPU memory, local SSD or object storage at GPU, node and cluster levels | KV-cache tiering ([Disaggregated serving](disaggregated_serving.md)) |
+| **NIXL** (Inference Transfer Library) | Async point-to-point transfers across HBM, DRAM, SSD and networked storage with one API over GPUDirect Storage, UCX, S3, etc. | KV transfer layer |
+
+NVIDIA's reported results (vendor numbers, measured on their own configurations; treat as indicative, not as a benchmark you can generalize):
+- Up to **30× more requests served** for DeepSeek-R1 671B on GB200 NVL72 (TensorRT-LLM, FP4, 32K input / 8K output). This figure is footnoted as *projected performance, subject to change*, and the baseline was in-flight batching on a different parallelism layout than the disaggregated setup (which used separate context and generation parallelism).
+- **More than 2× throughput** for Llama 70B on Hopper GPUs (vLLM, FP8, ~3K input / 50 output): baseline TP8×DP2 vs disaggregated context TP2×DP4 and generation TP8. Note the *different parallelism per phase*, which is exactly the benefit described above.
+- Smart Router: improved TTFT and end-to-end latency in their test on 2 HGX-H100 nodes with 8 vLLM replicas of DeepSeek-R1-Distill-Llama-70B and 100K real requests (avg. 4K input / 800 output); exact gains are shown only in charts.
+
+Takeaway for interviews: the headline gains come from combining **per-phase parallelism, cache-aware routing, and KV tiering**, not from the split alone, and they are largest for long-input, reasoning-style workloads.
+
 ## Interview angle (how to talk about it)
 1. State the two phases and their bottlenecks (compute-bound vs memory-bound) and the two SLOs (TTFT, TPOT).
 2. Show the interference problem and mention chunked prefill as the cheaper first fix.
@@ -84,4 +101,5 @@ Research: **DistServe** (OSDI '24), **Splitwise** (ISCA '24), **Mooncake** (Kimi
 * [Splitwise: Efficient generative LLM inference using phase splitting (ISCA '24)](https://arxiv.org/abs/2311.18677)
 * [Mooncake: A KVCache-centric Disaggregated Architecture for LLM Serving](https://arxiv.org/abs/2407.00079)
 * [Sarathi-Serve: chunked prefills (OSDI '24)](https://arxiv.org/abs/2403.02310), [Efficient Memory Management for LLM Serving with PagedAttention](https://arxiv.org/abs/2309.06180)
-* [vLLM docs: disaggregated prefilling](https://docs.vllm.ai/), [NVIDIA Dynamo](https://github.com/ai-dynamo/dynamo), [llm-d](https://github.com/llm-d/llm-d)
+* [Introducing NVIDIA Dynamo (NVIDIA Technical Blog)](https://developer.nvidia.com/blog/introducing-nvidia-dynamo-a-low-latency-distributed-inference-framework-for-scaling-reasoning-ai-models/)
+* [vLLM docs: disaggregated prefilling](https://docs.vllm.ai/), [NVIDIA Dynamo repo](https://github.com/ai-dynamo/dynamo), [llm-d](https://github.com/llm-d/llm-d)
