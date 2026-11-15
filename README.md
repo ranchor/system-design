@@ -1,83 +1,168 @@
 # System Design Notes
 
-Revision notes for system design interviews. Each concept note follows the same shape: **TL;DR → core ideas →
-diagram → trade-offs → interview follow-ups → references**. Diagrams are in `resources/**`; each `.svg` has a
-matching `.excalidraw` source you can open and edit at [excalidraw.com](https://excalidraw.com).
+Revision notes for system design interviews, organised in five parts so you can study in order or jump straight to what you need.
 
-Items marked _(planned)_ don't have notes yet.
+| Part | Question it answers |
+|---|---|
+| [Part 0: Interview Framework](#part-0-interview-framework) | How do I run the interview and size the problem? |
+| [Part 1: Key Technologies](#part-1-key-technologies) | Which building block do I pick, and when? |
+| [Part 2: Core Concepts](#part-2-core-concepts) | Why do these systems behave the way they do? |
+| [Part 3: Common Patterns](#part-3-common-patterns) | What are the reusable solutions to recurring problems? |
+| [Part 4: Interview Problems](#part-4-system-design-interview-problems) | Can I combine all of it into a full design? |
+| [Part 5: Resources](#part-5-resources) | What should I read or watch next? (books, papers, blogs, videos) |
 
-## System Design Key Concepts
+Each note follows the same shape: **TL;DR → core ideas → diagram → trade-offs → interview follow-ups → references**. Diagrams are in `resources/**`; each `.svg` has a matching `.excalidraw` source you can open and edit at [excalidraw.com](https://excalidraw.com). Items marked _(planned)_ don't have notes yet.
 
-### Chapter 1: Foundations, Networking & Traffic
-- [Scalability](basics/scalability.md)
-- [Availability](basics/availability.md)
-- [Reliability](basics/reliability.md)
-- [Consistency Models & Patterns](basics/consistency.md)
-- [CAP Theorem and PACELC Theorem](basics/cap_theorem.md)
+**Suggested path:** Part 0 → Part 1 (skim) → Part 3 → Part 4, and dip into Part 2 whenever a "why" comes up.
+
+---
+
+## Part 0: Interview Framework
+- Delivery framework: requirements → API → data model → high-level design → deep dives _(planned)_
+- Functional vs non-functional requirements checklist _(planned)_
 - [Back of Envelope Estimation](basics/back_of_envelope_estimation.md)
-- [OSI Model](basics/osi_model.md)
-- [TCP vs UDP (and HTTP/1.1, 2, 3)](basics/tcp_udp.md)
-- [Domain Name System (DNS)](basics/dns.md)
+
+---
+
+## Part 1: Key Technologies
+_What to reach for. Each page: what it is, when to use it, when not to, scaling model, consistency/durability guarantees, failure behaviour, and links to the concepts it relies on._
+
+### 1.1 Databases
+- [Types of Databases](basics/database_types.md)
+- [SQL vs NoSQL](basics/database_sql_vs_nosql.md)
+- [Database Indexes (B-Tree vs LSM-Tree)](basics/database_indexing.md)
+- Postgres / MySQL _(planned)_
+- DynamoDB / Cassandra _(planned)_
+- MongoDB _(planned)_
+
+### 1.2 Blob / Object Storage
+- [Blob / Object Storage](basics/blob_storage.md)
+- [Data File Formats (Parquet, ORC, Avro)](basics/file_formats.md)
+
+### 1.3 Search
+- Elasticsearch _(planned)_
+
+### 1.4 Caching
+- [Caching](basics/caching.md)
+- [Memcached vs Redis](basics/redis_memcached.md)
 - [Content Delivery Network (CDN)](basics/cdn.md)
+
+### 1.5 Queues & Pub/Sub
+- [Synchronous vs Asynchronous Communication (Queues, Pub/Sub)](basics/asynchronism.md)
+- Kafka _(planned)_
+- SQS _(planned)_
+- Kafka vs SQS _(planned; summary in [Asynchronism](basics/asynchronism.md#interview-follow-ups))_
+
+### 1.6 Stream Processing
+- [Batch Processing vs Stream Processing](basics/bp_sp.md)
+- [Apache Flink](basics/flink.md)
+- Flink vs Spark _(planned)_
+
+### 1.7 Batch Processing
+- Apache Spark _(planned)_
+- MapReduce _(planned)_
+
+### 1.8 Coordination & Locks
+- [Coordination Services (ZooKeeper, etcd)](basics/zookeeper.md)
+- [Distributed Locking](basics/distributed_locking.md)
+
+### 1.9 Edge & Traffic
+- [Domain Name System (DNS)](basics/dns.md)
 - [Proxy (Forward & Reverse)](basics/proxy.md)
 - [Load Balancing](basics/load_balancing.md)
 - [API Gateway](basics/api_gateway.md)
+
+### 1.10 Service Communication
 - [REST vs GraphQL vs gRPC](basics/api_styles.md)
 - [Long Polling, WebSockets, SSE, Webhooks](basics/lp_ws_sse_wh.md)
-- [Caching](basics/caching.md)
-    - [Distributed Caching](basics/caching.md#distributed-cache)
-    - [Memcached vs Redis](basics/redis_memcached.md)
+- [Service Discovery & Service Mesh](basics/service_discovery.md)
+- [API Design](basics/api_design.md)
+
+### 1.11 Geospatial
+- Geohashing and Quadtrees _(planned; used in [Proximity Service](problems/proximity_service.md))_
+- Geospatial Indexes (S2, H3) _(planned)_
+
+---
+
+## Part 2: Core Concepts
+_Why they work. Theory and trade-offs; each page ends with "where it shows up" links back to Part 1._
+
+### 2.1 Foundations
+- [Scalability](basics/scalability.md)
+- [Availability](basics/availability.md)
+- [Reliability](basics/reliability.md)
+- [OSI Model](basics/osi_model.md)
+- [TCP vs UDP (and HTTP/1.1, 2, 3)](basics/tcp_udp.md)
+
+### 2.2 Distributing Data
+- [Data Partitioning / Sharding](basics/data_partitioning.md)
 - [Consistent Hashing](basics/consistent_hashing.md)
+- [Replication & Data Redundancy](basics/data_replication.md)
+- [Quorum, Sloppy Quorum & Hinted Handoff](basics/quorum.md)
+
+### 2.3 Consistency & Ordering
+- [Consistency Models & Patterns](basics/consistency.md)
+- [CAP Theorem and PACELC Theorem](basics/cap_theorem.md)
+- Time & Ordering (physical clocks, Lamport / vector / hybrid logical clocks) _(planned)_
+
+### 2.4 Transactions & Messaging Guarantees
+- [Transactions, ACID & Isolation Levels](basics/transactions.md)
+- [Distributed Transactions (2PC, 3PC, Saga)](basics/distributed_transactions.md)
+- [Idempotency](basics/idempotency.md)
+- Delivery semantics (at-most / at-least / exactly-once) _(planned)_
+
+### 2.5 Agreement
+- [Consensus (Raft, Paxos)](basics/consensus.md)
+- Leader election _(planned)_
+
+### 2.6 Failure Handling
+- [Heartbeats & Failure Detection](basics/heartbeats.md)
+- [Gossip Protocol](basics/gossip_protocol.md)
+- [Resilience Patterns (Timeouts, Retries, Circuit Breaker, Bulkhead)](basics/resilience_patterns.md)
+- [Checksums](basics/checksums.md)
+
+### 2.7 Data Structures & Storage Internals
+- [Bloom Filters](basics/bloom_filter.md)
+- [Count-Min Sketch](basics/count_min_sketch.md)
+- HyperLogLog, Merkle Trees _(planned)_
+- Write-ahead log, LSM compaction _(planned)_
+
+### 2.8 Security & Observability
 - [Security](basics/security.md)
     - [AuthN and AuthZ (sessions, JWT, OAuth2/OIDC, RBAC/ReBAC)](basics/authn_authz.md)
 - [Monitoring & Observability](basics/monitoring.md)
 
-### Chapter 2: Data & Distributed Systems
-- [Types of Databases](basics/database_types.md)
-- **[SQL vs NoSQL](basics/database_sql_vs_nosql.md)**
-- [Database Indexes (B-Tree vs LSM-Tree)](basics/database_indexing.md)
-- **[Replication & Data Redundancy](basics/data_replication.md)**
-- [Data Partitioning / Sharding](basics/data_partitioning.md)
-- [Quorum, Sloppy Quorum & Hinted Handoff](basics/quorum.md)
-- **[Transactions, ACID & Isolation Levels](basics/transactions.md)**
-- [Distributed Transactions (2PC, 3PC, Saga)](basics/distributed_transactions.md)
-- [Consensus (Raft, Paxos)](basics/consensus.md)
-- **[Coordination Services (ZooKeeper, etcd)](basics/zookeeper.md)**
-- [Distributed Locking](basics/distributed_locking.md)
-- [Gossip Protocol](basics/gossip_protocol.md)
-- [Heartbeats & Failure Detection](basics/heartbeats.md)
-- [Checksums](basics/checksums.md)
-- [Idempotency](basics/idempotency.md)
-- [Service Discovery & Service Mesh](basics/service_discovery.md)
-- [Resilience Patterns (Timeouts, Retries, Circuit Breaker, Bulkhead)](basics/resilience_patterns.md)
-- **[Batch Processing vs Stream Processing](basics/bp_sp.md)**
-- [Synchronous vs Asynchronous Communication (Queues, Pub/Sub)](basics/asynchronism.md)
-- **[Blob / Object Storage](basics/blob_storage.md)**
-- [Data File Formats (Parquet, ORC, Avro)](basics/file_formats.md)
-- [Bloom Filters](basics/bloom_filter.md)
-- [Count-Min Sketch](basics/count_min_sketch.md)
+---
 
-### Chapter 3: Technologies Deep Dive
-- [Apache Flink](basics/flink.md)
-- Message Brokers _(planned; basics in [Asynchronism](basics/asynchronism.md))_
-- Kafka _(planned)_
-- SQS _(planned)_
-- Kafka vs SQS _(planned; summary in [Asynchronism](basics/asynchronism.md#interview-follow-ups))_
-- Apache Spark _(planned)_
-- Flink vs Spark _(planned)_
-- MongoDB _(planned)_
-- Cassandra _(planned)_
-- Elasticsearch _(planned)_
-- Geohashing and Quadtrees _(planned; used in [Proximity Service](problems/proximity_service.md))_
-- Geospatial Indexes _(planned)_
+## Part 3: Common Patterns
+_Reusable solutions that combine technologies and concepts. Format: problem it solves → approach → technologies used → trade-offs → example problems._
 
-### Chapter 4: Architecture & API Design
-- **[Architecture Patterns](basics/architecture_patterns.md)**
+### 3.1 Scaling & Performance
+- Scaling reads (replicas, caching, CDN) _(planned)_
+- Scaling writes (sharding, batching, write buffering via queues) _(planned)_
+- Hot keys / hot partitions _(planned)_
+- Fan-out on write vs fan-out on read _(planned)_
+- Rate limiting, backpressure & load shedding _(planned; see [Resilience Patterns](basics/resilience_patterns.md), [Rate Limiter](problems/rate_limiter.md))_
+- Multi-region / geo-distribution _(planned)_
+
+### 3.2 Correctness & Reliability
+- Handling contention (optimistic vs pessimistic locking, distributed locks, queue serialisation) _(planned; see [Transactions](basics/transactions.md), [Distributed Locking](basics/distributed_locking.md))_
+- Multi-step processes (Saga, orchestration vs choreography, workflows) _(planned; see [Distributed Transactions](basics/distributed_transactions.md))_
+- Reliable messaging (outbox, retries, DLQ, deduplication) _(planned; see [Idempotency](basics/idempotency.md))_
+- Long-running tasks (async jobs, workers, scheduling) _(planned; see [Job Scheduler](problems/distributed_job_scheduler.md))_
+- Real-time updates (polling vs SSE vs WebSockets vs pub/sub) _(planned; see [Long Polling, WebSockets, SSE](basics/lp_ws_sse_wh.md))_
+- Large blobs (presigned URLs, chunked / resumable upload) _(planned; see [Blob Storage](basics/blob_storage.md))_
+- Counting & dedup at scale (Bloom, CMS, HLL) _(planned)_
+
+### 3.3 Architecture Patterns
+- [Architecture Patterns (SOA, microservices, event-driven)](basics/architecture_patterns.md)
+- Event sourcing, CQRS, change data capture _(planned)_
 - [Design Principles (SOLID)](https://blog.bytebytego.com/p/mastering-design-principles-solid)
-- [API Design](basics/api_design.md)
 
-## System Design Interview Problems
-Template for new problems: [template.md](template.md)
+---
+
+## Part 4: System Design Interview Problems
+Each problem lists the **building blocks** (Part 1), **concepts** (Part 2) and **patterns** (Part 3) it uses. Template for new problems: [template.md](template.md)
 
 ### Depth Oriented Problems
 - Design Consistent Hashing _(planned; concept in [Consistent Hashing](basics/consistent_hashing.md))_
@@ -146,36 +231,38 @@ Template for new problems: [template.md](template.md)
 - [Design LeetCode](problems/leetcode.md)
 - [Design Dropbox/Google Drive/File Sharing Service](problems/dropbox.md)
 
-## 📖 Book Notes
-- [Designing Data-Intensive Applications](ddia/readme.md)
+## Part 5: Resources
+_Where to go deeper. Papers are paired with the note they back up._
 
-## 🗞️ Must-Read Distributed Systems Papers
-- [Paxos: The Part-Time Parliament](https://lamport.azurewebsites.net/pubs/lamport-paxos.pdf)
-- [MapReduce: Simplified Data Processing on Large Clusters](https://research.google.com/archive/mapreduce-osdi04.pdf)
-- [The Google File System](https://static.googleusercontent.com/media/research.google.com/en//archive/gfs-sosp2003.pdf)
-- [Dynamo: Amazon’s Highly Available Key-value Store](https://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf)
-- [Kafka: a Distributed Messaging System for Log Processing](https://notes.stephenholiday.com/Kafka.pdf)
-- [Spanner: Google’s Globally-Distributed Database](https://static.googleusercontent.com/media/research.google.com/en//archive/spanner-osdi2012.pdf)
-- [Bigtable: A Distributed Storage System for Structured Data](https://static.googleusercontent.com/media/research.google.com/en//archive/bigtable-osdi06.pdf)
-- [ZooKeeper: Wait-free coordination for Internet-scale systems](https://www.usenix.org/legacy/event/usenix10/tech/full_papers/Hunt.pdf)
-- [The Log-Structured Merge-Tree (LSM-Tree)](https://www.cs.umb.edu/~poneil/lsmtree.pdf)
-- [The Chubby lock service for loosely-coupled distributed systems](https://static.googleusercontent.com/media/research.google.com/en//archive/chubby-osdi06.pdf)
-
-## 📚 Books
-- [Designing Data-Intensive Applications](https://www.amazon.com/Designing-Data-Intensive-Applications-Reliable-Maintainable/dp/B08VL1BLHB/)
+### 5.1 Books & Book Notes
+- [Designing Data-Intensive Applications](https://www.amazon.com/Designing-Data-Intensive-Applications-Reliable-Maintainable/dp/B08VL1BLHB/) — [my notes](ddia/readme.md)
 - [System Design Interview – An insider's guide](https://www.amazon.com/System-Design-Interview-insiders-Second/dp/B08CMF2CQF/)
 
-## Blog Posts/Github Links to Follows
-- [awesome-system-design-resources](https://github.com/ashishps1/awesome-system-design-resources/blob/main/README.md)
-- [Jordan System Design Basics PowerPoint](https://drive.google.com/drive/folders/1ChodcbMZ4KqS9WP9gin4sLVdCsgD3uoE)
-- https://github.com/karanpratapsingh/system-design
-- [highscalability](https://highscalability.com/)
-- [ByteByteGoHq](https://github.com/ByteByteGoHq/system-design-101)
-- [designing-data-intensive-applications notes](https://github.com/keyvanakbary/learning-notes/blob/master/books/designing-data-intensive-applications.md)
-- [Alex Wu Books Notes](https://github.com/preslavmihaylov/booknotes/tree/master/system-design/system-design-interview)
-- [systemdesign one](https://systemdesign.one/system-design-interview-cheatsheet/)
+### 5.2 Must-Read Distributed Systems Papers
+| Paper | Pairs with |
+|---|---|
+| [Paxos: The Part-Time Parliament](https://lamport.azurewebsites.net/pubs/lamport-paxos.pdf) | [Consensus](basics/consensus.md) |
+| [The Chubby lock service](https://static.googleusercontent.com/media/research.google.com/en//archive/chubby-osdi06.pdf) | [Distributed Locking](basics/distributed_locking.md), [Coordination Services](basics/zookeeper.md) |
+| [ZooKeeper: Wait-free coordination](https://www.usenix.org/legacy/event/usenix10/tech/full_papers/Hunt.pdf) | [Coordination Services](basics/zookeeper.md) |
+| [Dynamo: Amazon's Highly Available Key-value Store](https://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf) | [Quorum](basics/quorum.md), [Consistent Hashing](basics/consistent_hashing.md), [Replication](basics/data_replication.md) |
+| [Bigtable](https://static.googleusercontent.com/media/research.google.com/en//archive/bigtable-osdi06.pdf) | [Database Indexes (LSM)](basics/database_indexing.md), [SQL vs NoSQL](basics/database_sql_vs_nosql.md) |
+| [The Log-Structured Merge-Tree](https://www.cs.umb.edu/~poneil/lsmtree.pdf) | [Database Indexes (LSM)](basics/database_indexing.md) |
+| [Spanner](https://static.googleusercontent.com/media/research.google.com/en//archive/spanner-osdi2012.pdf) | [Distributed Transactions](basics/distributed_transactions.md), [Consistency](basics/consistency.md) |
+| [The Google File System](https://static.googleusercontent.com/media/research.google.com/en//archive/gfs-sosp2003.pdf) | [Blob / Object Storage](basics/blob_storage.md) |
+| [MapReduce](https://research.google.com/archive/mapreduce-osdi04.pdf) | [Batch vs Stream Processing](basics/bp_sp.md) |
+| [Kafka: a Distributed Messaging System for Log Processing](https://notes.stephenholiday.com/Kafka.pdf) | [Queues & Pub/Sub](basics/asynchronism.md) |
 
-## YouTube Channels
+### 5.3 Blogs & GitHub Repos to Follow
+- [awesome-system-design-resources](https://github.com/ashishps1/awesome-system-design-resources/blob/main/README.md)
+- [karanpratapsingh/system-design](https://github.com/karanpratapsingh/system-design)
+- [ByteByteGo system-design-101](https://github.com/ByteByteGoHq/system-design-101)
+- [DDIA notes (keyvanakbary)](https://github.com/keyvanakbary/learning-notes/blob/master/books/designing-data-intensive-applications.md)
+- [Alex Xu book notes (preslavmihaylov)](https://github.com/preslavmihaylov/booknotes/tree/master/system-design/system-design-interview)
+- [highscalability](https://highscalability.com/)
+- [systemdesign.one cheatsheet](https://systemdesign.one/system-design-interview-cheatsheet/)
+- [Jordan System Design Basics slides](https://drive.google.com/drive/folders/1ChodcbMZ4KqS9WP9gin4sLVdCsgD3uoE)
+
+### 5.4 YouTube Channels
 - [ByteByteGo](https://www.youtube.com/@ByteByteGo)
 - [System Design Interview](https://www.youtube.com/@SystemDesignInterview)
 - [codeKarle](https://www.youtube.com/@codeKarle)
