@@ -1,6 +1,6 @@
 # Data Partitioning & Sharding
 
-> **TL;DR** — **Partitioning** splits data into smaller pieces; **sharding** is horizontal partitioning **across machines**, so
+> **TL;DR** — **Partitioning** splits data into smaller pieces, either **horizontally** (by rows) or **vertically** (by columns / features). **Sharding** is horizontal partitioning **across machines**, so
 > storage, write throughput and read throughput scale out. You must make two linked decisions: **what to shard by** (the
 > *shard key*: high cardinality, evenly distributed, present in your hot queries) and **how to place it** (hash by default;
 > range when range scans matter; directory when you need flexibility). Sharding then costs you **hot spots, cross-shard queries,
@@ -10,17 +10,46 @@
 > explain the trade-offs. Related: [Consistent Hashing](consistent_hashing.md), [Replication](data_replication.md),
 > [Distributed Transactions](distributed_transactions.md), [Database Indexes](database_indexing.md), [Caching](caching.md).
 
-## 1. Partitioning vs sharding
-![](../resources/basics/sharding/partitioning_vs_sharding.svg)
+## 1. Horizontal vs vertical partitioning (and where sharding fits)
+![](../resources/basics/sharding/horizontal_vs_vertical.svg)
 
-- **Partitioning** (in the narrow sense): split a big table into smaller pieces **inside one database instance** (e.g. one partition per month).
-  A query for last month's orders scans one partition instead of 500M rows; indexes shrink; vacuum/rebuild/retention (`DROP PARTITION`) get cheap.
-  It adds no CPU, memory or disks.
-- **Sharding**: horizontal partitioning **across many machines**; each shard is an independent database with its own CPU, RAM, storage
-  and connection pool. Capacity and throughput grow with shard count.
-- People use the words loosely. Be explicit about whether data lives on **one machine or many**.
-- Two shapes of split: **horizontal** (rows: same columns, different rows per partition) and **vertical** (columns, or whole tables/features
-  moved to their own databases: a "functional split"; cheap and low impact, but each part still scales vertically).
+**Partitioning** means splitting data into smaller, more manageable pieces. There are exactly two directions to cut a table:
+
+| | **Horizontal partitioning** | **Vertical partitioning** |
+|---|---|---|
+| What is split | **Rows**: each partition holds a subset of the rows | **Columns**: each partition holds a subset of the columns |
+| Schema | **Identical** in every partition | **Different**: the table is broken into narrower tables (or services) |
+| Typical split rule | A **partition/shard key** (range, hash, list, directory) | By access pattern: hot vs cold, small vs large, or by feature/domain |
+| Reassembling data | Usually not needed for single-key queries; scatter-gather for the rest | **Join** (or call) across the pieces on the shared key |
+| Main win | **Scales** storage and throughput (when spread over machines); pruning, cheap retention | Smaller hot rows → more rows per page, better cache hit rate; isolates big/rare columns; isolates domains |
+| Main cost | Shard-key choice, hot spots, cross-shard queries and transactions, resharding | Extra joins/lookups; each piece still grows and still needs scaling; cross-piece consistency |
+| Example | `orders` split by month, or by `hash(user_id)` across 64 databases | Keep `id, name, country` in `users`; move `bio` and `avatar_blob` to `user_profile_details` |
+
+### Horizontal partitioning has two scopes
+- **Within one database instance**: **table partitioning** (Postgres/MySQL declarative partitions: one per month, hash buckets, etc.). The data stays on one
+  machine, so you don't gain CPU, RAM or disks, but a query for last month's orders scans one partition instead of 500M rows, indexes shrink, vacuum/rebuild is
+  cheaper and retention is `DROP PARTITION`.
+- **Across many machines**: **sharding**. Each shard is an independent database with its own CPU, RAM, storage and connection pool, so capacity and throughput
+  scale with the number of shards. **Sharding is therefore the distributed form of horizontal partitioning**, not a separate kind.
+- People use "partitioning" and "sharding" loosely. Be explicit: *which direction* (rows or columns) and *how many machines* (one or many).
+
+### Vertical partitioning in practice
+Hello Interview's framing: keep **frequently accessed columns in one partition and large or rarely used columns in another**. Concretely:
+1. **Column split inside one table/database**: separate wide `TEXT`/`BLOB`/`JSON` columns (bio, document body, image) from the hot narrow columns. Row width shrinks,
+   more rows fit per page/cache line, scans and index-only queries speed up. Postgres already does a version of this internally with **TOAST** for large values.
+2. **Functional split (vertical sharding)**: put whole tables or domains on separate databases (users, orders, payments, search each get their own store and
+   scaling profile), typically aligned with services/bounded contexts. This is the **first, cheapest scaling step** after replicas and caching.
+3. **Different storage for different columns**: hot attributes in the OLTP database, large objects in [blob storage](blob_storage.md) (store only a URL), analytics columns in a
+   columnar store.
+- **Pros**: straightforward, low application impact, lets each part use the best store and scale independently.
+- **Cons**: queries that need both halves need a join or two calls (and cross-database joins are not possible in SQL, so they move into the application); **each part
+  still hits a ceiling** and eventually needs horizontal partitioning; atomic changes across parts need [distributed transactions or sagas](distributed_transactions.md).
+- Note: *normalization* also splits columns into tables, but its purpose is removing redundancy (see [Data Modeling](data_modeling.md)), whereas vertical partitioning is
+  done for **performance and scaling**.
+
+### How they combine (typical growth path)
+Vertical split first (services own their data) → then horizontal within each hot table/service (partition, then shard). Production systems use both: e.g. `users` and
+`orders` on separate databases (vertical), and `orders` sharded by `user_id` across 64 shards (horizontal), each shard replicated ([Replication](data_replication.md)).
 
 ### The scaling ladder: don't shard first
 1. Fix queries and indexes; remove N+1; cache hot reads ([Caching](caching.md)).
@@ -79,7 +108,7 @@ transacted together (a user's profile, orders and balances on the same shard) so
 - Hash-based is what an interviewer assumes unless you say otherwise. Directory-based is rarely the right interview answer because it invites follow-ups about the lookup service's availability and latency.
 - **Hash + range hybrid** (compound keys): `(tenant_id, hash(user_id))`, or Cassandra's `(partition key, clustering key)`: even spread across partitions, ordered scans within one.
 
-### More partitioning schemes (database-level)
+### Horizontal partitioning schemes (database-level)
 The same ideas appear as table-partitioning options in Postgres/MySQL/Oracle:
 
 #### Range partitioning
@@ -119,7 +148,7 @@ PARTITION BY LIST(store_id) (
 ![Composite Partitioning](../resources/basics/sharding/sharding_criteria_composite.png)
 - Pros: tune for several query shapes. Cons: operational complexity.
 
-#### Horizontal, vertical and directory pictures
+#### Pictures: horizontal, vertical and directory-based
 ![Horizontal Partitioning](../resources/basics/sharding/sharding_horizontal.png)
 ![Vertical Partitioning](../resources/basics/sharding/sharding_vertical.png)
 ![Directory-based Partitioning](../resources/basics/sharding/sharding_directory.png)
@@ -224,7 +253,8 @@ In an interview it's enough to say: *"DynamoDB with `user_id` as the partition k
 - *"How do you do a query by email when sharded by user_id?"* A global secondary index or a lookup table `email → user_id` (eventually consistent) or scatter-gather if rare.
 - *"How do you transfer money between users on different shards?"* Avoid by design; else saga with idempotent compensations, or distributed SQL.
 - *"Sharding vs replication?"* Replication copies the **same** data for availability and read scale; sharding splits **different** data for capacity and write scale; production systems use both (each shard is replicated).
-- *"Partitioning vs sharding?"* Same technique at different scope: within one database vs across machines.
+- *"Partitioning vs sharding?"* Sharding is horizontal partitioning across machines; plain table partitioning is horizontal within one database.
+- *"Horizontal vs vertical partitioning?"* Horizontal splits rows (same schema, scales data volume and throughput); vertical splits columns or features (different schemas, isolates hot/cold data and domains); most systems do vertical first, then horizontal.
 
 # References
 * Designing Data-Intensive Applications, Chapter 6 (Partitioning)
