@@ -1,251 +1,259 @@
-# Table of contents
+# SQL vs NoSQL (and NewSQL)
 
-- [SQL Databases and NoSQL Databases](#sql-databases-and-nosql-databases)
-  - [SQL Databases(Relational Databases)](#sql-databasesrelational-databases)
-  - [No-SQL Databases(Non-relational Databases)](#no-sql-databasesnon-relational-databases)
-- [Differences between SQL and NoSQL](#differences-between-sql-and-nosql)
-- [Pros and Cons of SQL and NoSQL](#pros-and-cons-of-sql-and-nosql)
-  - [Pros of SQL](#pros-of-sql)
-  - [Cons of SQL](#cons-of-sql)
-  - [Pros of NoSQL](#pros-of-nosql)
-  - [Cons of NoSQL](#cons-of-nosql)
-- [Which one to use?](#which-one-to-use)
-  - [When to use SQL](#when-to-use-sql)
-  - [Use cases of SQL (with Examples)](#use-cases-of-sql-with-examples)
-  - [When to use NoSQL](#when-to-use-nosql)
-  - [Use cases of NoSQL (with Examples)](#use-cases-of-nosql-with-examples)
-- [Data Replication](#data-replication)
-- [Data Partitioning/Sharding](#data-partitioningsharding)
-- [References](#references)
+> **TL;DR** — "SQL vs NoSQL" is really three separate choices: the **data model** (tables vs
+> key-value/document/wide-column/graph), the **guarantees** (ACID transactions vs weaker, per-item or
+> per-partition ones), and the **scaling shape** (one write primary vs partitioned writes). Modern systems blur all
+> three: Postgres stores JSON and scales with replicas, shards and extensions; DynamoDB and MongoDB offer ACID
+> transactions; **NewSQL / distributed SQL** (Spanner, CockroachDB, TiDB, Aurora DSQL) gives SQL + ACID + horizontal
+> scale at the price of commit latency. **Default to Postgres**, and justify leaving it with concrete access patterns,
+> numbers and consistency needs, never with "NoSQL scales". For the catalog of store types see
+> [Types of Databases](database_types.md).
 
-# SQL Databases and NoSQL Databases
-## SQL Databases(Relational Databases)
-* Data is organized in tables, where columns represent attributes and rows represent records.
-* Relational databases are structured and have predefined schemas
-* **Examples**: MySQL, PostgreSQL, Oracle Database, MS SQL Server, SQLite, and MariaDB.
-* **ACID** is a set of properties of relational database transactions.
-  * **Atomicity** - Each transaction is all or nothing
-  * **Consistency** - Any transaction will bring the database from one valid state to another
-  * **Isolation** - Executing transactions concurrently has the same results as if the transactions were executed serially
-  * **Durability** - Once a transaction has been committed, it will remain so
-* In comparison with the CAP Theorem, ACID choose consistency over availability.
+## What the question is really asking
+Interviewers don't want a winner. They want to see you:
+1. Derive **access patterns** and **scale numbers** first (QPS, data size, read/write ratio, latency, consistency).
+2. Choose a store for each piece of data and **name the trade-off** you accept.
+3. Know the modern reality (NoSQL has transactions; SQL scales further than people think).
 
-## No-SQL Databases(Non-relational Databases)
-* Manages data in a non-relational structure.
-* Schemaless (no fixed schema) and avoids joins
-* **BASE** is often used to describe the properties of NoSQL databases. In comparison with the CAP Theorem, BASE chooses 
-  availability over consistency.
-  * **Basically available - the system guarantees availability.
-  * **Soft state** - the state of the system may change over time, even without input.
-  * **Eventual consistency** - the system will become consistent over a period of time, given that the system doesn't 
-      receive input during that period.
-### Common types of NoSQL
-#### Key-value stores
->Abstraction: hash table
-* Data is stored in an array of key-value pairs
-* 'key' is an attribute name which is linked to a 'value'
-* Value can be anything from number, string to JSON and BLOB (Binary Large Objects)
-* Thus, they are highly scalable and can handle high volumes of traffic
-* Ideal for session management e.g. localStorage in the browser, shopping cart.
-* Eg: Amazon DynamoDB, Redis, , Aerospike, Memcached, Riak, Couchbase, Oracle Berkeley DB
-![](../resources/basics/db/db_hash.png)
+## Definitions
+**Relational (SQL)**: data in tables with a declared schema; rows relate via keys; queried with declarative SQL;
+the engine plans joins and enforces constraints (PK/FK/unique/check) and ACID transactions.
+Examples: PostgreSQL, MySQL/MariaDB, Oracle, SQL Server, SQLite.
 
-#### Document databases
->Abstraction: key-value store with documents stored as values
-* Data is stored in documents (instead of rows and columns in a table)
-* Data stored in JSON
-* Documents are grouped together in collections.
-* Each document can have an entirely different structure.
-* Ideal for storing any type of data, including images, videos and even geospatial data
-* Eg: MongoDB, ElasticSearch, CouchDB, CosmosDB, Amazon SimpleDB
-![](../resources/basics/db/db_document.png)
+**NoSQL**: an umbrella for non-relational stores that trade some relational features for a different data model,
+scaling model or latency profile. It is *not* one thing; there are four core families plus specialised stores.
 
-#### Wide-column / columnar databases / column-based
->Abstraction: nested map ColumnFamily<RowKey, Columns<ColKey, Value, Timestamp>>
-* Column families - containers for rows.
-* Keys stored in columns rather than rows
-* No need to know all the columns up front.
-* Each row can have different number of columns.
-* Ideal for Data Warehouses and Business Intelligence (B.I.)
-* Eg: Cassandra, Bigtable, Hadoop, HBase, Hypertable, Druid, Azure SQL Data Warehouse
+![](../resources/basics/database_types/nosql_families.svg)
 
-![](../resources/basics/db/db_column.png)
+| Family | Abstraction | Examples |
+|---|---|---|
+| Key-value | hash table | Redis, DynamoDB, Riak |
+| Document | key → JSON document | MongoDB, Couchbase, Firestore |
+| Wide-column | partition key → sorted rows (nested map) | Cassandra, ScyllaDB, HBase, Bigtable |
+| Graph | nodes + edges + properties | Neo4j, Neptune, JanusGraph |
 
-![](../resources/basics/db/db_column1.png)
+Details, pitfalls and a "same data in five models" diagram are in [Types of Databases](database_types.md).
 
-#### Graph database
-* Data is stored in graph structures
-  * Nodes: entities
-  * Properties: information about the entities
-  * Lines: connections between the entities
-* Ideal for fraud detection, recommendation engineers, network mapping, social networks etc.
-* Eg: Neo4j, Virtuoso, ArangoDB, OrientDB, GraphDB, Amazon Neptune, Fauna, FlockDB
-  ![](../resources/basics/db/db_graph.png)
+## Head-to-head
+| Attribute | Relational (SQL) | NoSQL |
+|---|---|---|
+| Data model | Normalized tables, relations, joins | Key-value / document / wide-column / graph |
+| Schema | Declared up front; enforced by the DB; changed via migrations | Flexible; the schema lives in application code ("schema-on-read") |
+| Queries | Ad-hoc SQL, joins, aggregates, window functions; planner optimizes | Designed per access pattern; limited or no joins; ad-hoc queries are weak |
+| Modeling approach | Model the *data* (normalize), then query anyway you like | Model the *queries* (denormalize, one table/collection per access pattern) |
+| Transactions | Multi-row, multi-table ACID by default | Varies: per-item only; or limited multi-item (DynamoDB up to 100 items; MongoDB multi-document; Cassandra lightweight transactions per partition) |
+| Consistency | Strong on the primary; replicas lag | Often tunable (quorums) or eventual by default |
+| Write scaling | One primary per shard; scale up, then shard (extra work) | Built-in partitioning; add nodes |
+| Read scaling | Read replicas, caches | Replicas, partition fan-out |
+| Availability | Failover to replica (seconds to minutes) | Often leaderless or multi-leader, no failover step |
+| Typical storage engine | B-tree (Postgres, InnoDB) | LSM-tree (Cassandra, RocksDB, Bigtable) or B-tree (MongoDB WiredTiger default) |
+| Ops maturity | Decades of tooling, drivers, BI, ORMs | Varies by product; vendor-specific skills |
 
-# Differences between SQL and NoSQL
-| Attributes                                 | SQL                                                                                                                                                                                      | NoSQL                                                                                                                                  |
-|--------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|
-| Storage                                    | 1. Normalized structured data (rows and columns) 2. data stored in tables.                                                                                                               | have different data storage models.                                                                                                    |
-| Schema                                     | 1. Pre-defined and rigid 2. Each record conforms to a fixed schema. 3. Schema can be altered, but it requires modifying the whole database.                                              | Dynamic and Flexible (Schemaless)                                                                                                      |
-| Querying                                   | Use SQL (structured query language) for defining  and manipulating the data.                                                                                                             | 1.Queries are focused on a collection of documents. 2.UnQL (unstructured query language) 3. Different databases have different syntax. |
-| Scalability                                | 1. Vertically scalable (by increasing the horsepower: memory, CPU, etc) and expensive. 2. Horizontally scalable (across multiple servers); but it can be challenging and time-consuming. | 1. Horizontally scalable (by adding more servers) and cheap                                                                            |
-| Transaction Guarantees or  ACID Compliancy | 1. All support ACID (Atomicity, Consistency, Isolation, Durability) 2. Data reliability 3. Guarantee of transactions                                                                     | 1. Most support BASE (Basically Available, Soft state, Eventually consistent)                                                          |
-| CAP Theorem (Trade-offs)                   | Strong Consistency                                                                                                                                                                       | Eventual consistency and prioritize Availability and Partition tolerance                                                               |
-|                                            |                                                                                                                                                                                          |                                                                                                                                        |
+## ACID, BASE and CAP, and the confusion to avoid
+**ACID** (per transaction): **A**tomicity (all or nothing), **C**onsistency (the transaction moves the DB between
+states that satisfy its invariants/constraints), **I**solation (concurrent transactions don't see each other's
+partial work, to a degree set by the isolation level), **D**urability (committed data survives crashes).
 
-# Pros and Cons of SQL and NoSQL
-## Pros of SQL
-* **Reduced data storage** - Normalization removed data redundancy and duplication
-* **ACID-complian**t - Strong data integrity, security and consistency
-* **Normalization** - Database engines are better at optimizing queries to fit on-disk representations
-* **Great for complex queries** - SQL is efficient at processing queries and joining data across tables
-* **Predefined schema** - Validations are done on the database layer and not the application layer
-* Standardized language across different RDBMS
-## Cons of SQL
-**Vertical scaling** - Relatively more expensive than horizontal scaling
-**Rigid data model** - Require up-front design, and harder to make changes (require data migrations and possibly downtime)
-**Single point of failure** - Mitigated by replication and failover techniques
+**BASE** (a looser, mostly marketing-era description): **B**asically **A**vailable, **S**oft state, **E**ventual
+consistency: the system keeps answering during failures and replicas converge over time.
 
-## Pros of NoSQL
-* **Schemaless** - Easy to make changes to databases as requirements change
-* **Flexible data model** - Each entity can have its unique structure
-* **Horizontal scaling** - Relatively cheaper and easier, especially for Big Data
-* **Highly available** - Designed to support seamless scaling without a significant single point of failure
-* **High performance** - Data that is accessed together typically stored together
-## Cons of NoSQL
-* **Less secure** - Difficult to verify data integrity and consistency (only eventual consistency achieved)
-* **Schemaless** - Lacks standardization of data types
-* **No normalization** - Database engines are not as good at optimizing queries
-* **Larger data storage footprint** - More data duplication due to lack of normalization. But a relatively small drawback as storage is relatively cheap
-* **Different types of NoSQL databases** - each have their use cases. E.g. Graph databases are good for analyzing relationships but not range queries
+Interview traps:
+* **The "C" in ACID is not the "C" in CAP.** ACID-C is application-level invariants (e.g. balance ≥ 0). CAP-C is
+  **linearizability** across replicas. A single-node Postgres says nothing about CAP; a Raft-replicated NewSQL
+  database is both ACID and CP.
+* **ACID isolation is a spectrum.** The default in Postgres is *Read Committed*; in MySQL InnoDB it is *Repeatable
+  Read*. Neither is *Serializable*, so write skew and lost updates are still possible without locks or retries. See
+  [Transactions](transactions.md).
+* **"NoSQL = BASE, SQL = ACID" is outdated.** DynamoDB has `TransactWriteItems`, MongoDB has multi-document ACID
+  transactions, Spanner is a globally ACID *and* horizontally scaled system. Conversely, a SQL replica read is
+  eventually consistent.
+* CAP is only about behavior **during a partition**; the day-to-day trade-off is **latency vs consistency**
+  (PACELC). See [CAP & PACELC](cap_theorem.md) and [Consistency](consistency.md).
 
-# Which one to use?
-## When to use SQL
-* **ACID compliance is important**. 
-  * Reduce anomalies. 
-  * Protect database integrity. 
-* **Data is highly structured and does not change frequently**: Predefined schemas allow for easy navigation
-* **Working with complex queries** - NoSQL is less robust and has limited query functionality
-## Use cases of SQL (with Examples)
-* Banking account’s transaction history
-* Text Messaging System
-* Ecommerce transactions
-* [Stack Overflow scale pretty well with SQL to handle 800M SQL queries daily (8500 RPS at their peak)](https://www.slideshare.net/InfoQ/scaling-stack-overflow-keeping-it-vertical-by-obsessing-over-performance)
-* Shopify keep up with the traffic for Black Friday and Cyber Monday at 11 Million QPS using MySQL
-* [Uber transitioned from NoSQL to MySQL based storage for their Fulfilment Platform](https://www.uber.com/blog/fulfillment-platform-rearchitecture/)
+## Myths that cost points
+| Myth | Reality |
+|---|---|
+| "NoSQL scales, SQL doesn't." | One tuned Postgres/MySQL node serves very large workloads; the real ceiling is the single **write** primary. There's a ladder of fixes below it, then sharding and NewSQL. |
+| "NoSQL has no schema." | The schema moves into application code. You still have one; you just lose DB-enforced validation and gain painful, implicit migrations. |
+| "NoSQL has no transactions." | Varies by product (see above), but they're narrower: bounded size, same partition/region, extra cost. |
+| "Joins don't scale." | Joins on indexed keys within a node are cheap. Cross-shard joins are what hurt, in any system. |
+| "SQL can't store JSON." | Postgres `jsonb` + GIN indexes handles semi-structured data well. |
+| "NoSQL is cheaper." | Often the opposite for query flexibility: you pay in duplicated data, extra tables per query, and application code. |
+| "NoSQL is less secure." | Security depends on configuration (auth, TLS, encryption at rest, network isolation), not data model. |
+| "Eventual consistency = broken." | It's fine for feeds, counters, carts, view counts; it's wrong for balances and inventory. Decide per data item. |
+| "Aurora is NewSQL." | Aurora (classic) separates compute and storage but still has a **single writer**. Aurora DSQL is the distributed SQL product. |
 
-## When to use NoSQL
-* **Unstructured data** - different data entities can have different structure
-* **Faster development speed** - No need to design database schema
-* **Priority is easy scalability and availability** - Vertical scaling is expected to be too expensive
-* **Priority is not data consistency and integrity** - **NoSQL is not ACID compliant**
+## Data modeling
+### Relational: model the data, normalize, then denormalize on evidence
+* **Normalize** (3NF) so each fact lives once: no update anomalies, small rows, constraints enforce integrity.
+* **Denormalize selectively** (duplicate a column, store a precomputed aggregate or a materialized view) only when a
+  measured read is too slow, and own the sync logic (trigger, job, or CDC).
+* Index for the queries you run: composite indexes follow the leftmost-prefix rule. See [Indexes](database_indexing.md).
+* **Online schema changes** (expand → backfill → contract) avoid downtime: add the new nullable column, dual-read,
+  backfill in batches, switch reads, then drop the old column.
 
-## Use cases of NoSQL (with Examples)
-* Social media posts don’t have to appear in the same order for every user
-* Storing product views of millions of shoppers
-* Storing items in users’ shopping cart
-* Fraud detection - Detection algorithm rules require a huge amount of data from various sources
-* Personalization and recommendation engine - Huge amount of unstructured data
-* Market Basket Analysis e.g. study of purchases done by a customer in a supermarket
-* [Worknik migrated from MySQL to MongoDB to handle 10 Million API Requests A Day](http://highscalability.com/blog/2011/2/15/wordnik-10-million-api-requests-a-day-on-mongodb-and-scala.html)
-* [Netflix built fast, fault-tolerant systems with NoSQL](https://netflixtechblog.com/nosql-at-netflix-e937b660b4c)
-* [Gojek migrated from PostgreSQL to Cassandra to handle 100 Million transactions per month](https://www.gojek.io/blog/database-optimisation-on-cassandra)
+| Pattern | Use case | Pros | Cons |
+|---|---|---|---|
+| **Normalized (3NF)** | OLTP: orders, users, payments | Integrity, small writes, no duplication | Joins on read-heavy paths |
+| **Denormalized** | Read-heavy, hot paths | Fewer joins, faster reads | Duplicate data can drift; more write work |
+| **Star schema** | Warehouses / OLAP: a central fact table + dimension tables | Simple, fast aggregates | Redundant dimension data |
+| **Snowflake schema** | Star with normalized dimensions | Less redundancy | More joins, harder queries |
+| **Hierarchies in SQL** | Org charts, categories, comments | Adjacency list + recursive CTE; materialized path / `ltree`; closure table | Each trades write cost vs query speed |
 
-![](../resources/basics/db/db_choice.png)
+### NoSQL: model the queries
+* List every query first; design **one table/collection per access pattern** (even if data duplicates).
+* **MongoDB / document**: *embed* data that's read together and bounded (address in user); *reference* when
+  unbounded or shared (an order's items might embed, a product's reviews should reference). Avoid unbounded arrays.
+* **Cassandra / wide-column**: choose the **partition key** (what you always filter on, and enough cardinality to
+  spread load) and **clustering key** (sort order inside the partition). Keep partitions bounded (e.g. add a time
+  bucket: `(conversation_id, month)`).
+* **DynamoDB**: partition key + optional sort key; add **GSIs** for other access patterns (eventually consistent,
+  priced separately). **Single-table design** puts several entity types in one table to fetch related items in one
+  query. It's fast but rigid and hard to read, so use it when the access patterns are stable and known.
+* **Hot partitions** are the classic NoSQL failure: one key (celebrity, "today", a tenant) receives disproportionate
+  traffic. Fix with higher-cardinality keys, write sharding (`key#0..N`), caching, or splitting hot tenants. See
+  [Partitioning](data_partitioning.md).
 
+## Scaling relational: the ladder
+![](../resources/basics/sql_vs_nosql/relational_scaling_ladder.svg)
 
-![](../resources/basics/db/db_refractor.png)
+Rough order-of-magnitude anchors (verify for the actual hardware, schema and workload; these are only to make you
+state numbers instead of adjectives):
+* A single well-provisioned Postgres/MySQL node comfortably holds **low-TB** of data and serves
+  **tens of thousands of simple reads/sec and thousands to low tens of thousands of writes/sec**.
+* Read-heavy systems scale far with **replicas + cache**, because most traffic is reads.
+* You need to shard when a single **write primary**, storage size, or operational window (backup/restore, migrations)
+  becomes the limit. Not before.
 
-# Data Replication
-# Data Partitioning/Sharding
+Shard-key advice: choose what you filter on most (`user_id`, `tenant_id`), avoid hot keys and monotonic keys, keep
+related data on one shard (so transactions stay local), and plan resharding (consistent hashing / directory or
+logical shards that can be moved). See [Partitioning](data_partitioning.md) and [Consistent Hashing](consistent_hashing.md).
 
-# Table topology
-Table topology refers to the design and arrangement of tables in a database to optimize for various aspects such as performance, scalability, consistency, and availability. Here are some common table topologies used in database design:
+How NoSQL scales is by design: data is partitioned by key across nodes (consistent hashing, hash-slot ranges)
+and replicated ([Replication](data_replication.md), [Quorum](quorum.md)), so adding nodes adds write throughput, but
+every query must route by partition key.
 
-## 1. **Single Table Design**
-- **Description:** All data related to a particular entity is stored in a single table.
-- **Use Case:** Simple applications with low complexity and fewer relationships between entities.
-- **Pros:** Easy to implement and manage, simple queries.
-- **Cons:** Not scalable for complex applications, can lead to large tables and performance issues.
+## NewSQL / distributed SQL
+**Idea:** keep SQL, ACID and strong consistency, but build the storage layer like a NoSQL system. Data is split into
+**ranges/shards**; each range is a replicated **consensus group** (Raft or Paxos); a **distributed transaction
+layer** (2PC across ranges, MVCC timestamps) provides ACID across shards; a stateless **SQL layer** plans queries.
+The term "NewSQL" dates to ~2011, and the broader label today is **distributed SQL**.
 
-## 2. **Star Schema**
-- **Description:** Central fact table connected to multiple dimension tables.
-- **Use Case:** Data warehousing and OLAP systems.
-- **Pros:** Simplifies queries and improves performance, easy to understand.
-- **Cons:** Redundancy in dimension tables, not ideal for many-to-many relationships.
+![](../resources/basics/sql_vs_nosql/newsql_architecture.svg)
 
-## 3. **Snowflake Schema**
-- **Description:** Extension of star schema where dimension tables are normalized into multiple related tables.
-- **Use Case:** Data warehousing with more complex relationships.
-- **Pros:** Reduces redundancy, saves storage space.
-- **Cons:** More complex queries, increased number of joins.
+| System | Notes |
+|---|---|
+| **Google Spanner** | The original. Paxos groups per split, 2PC across groups, **TrueTime** clocks give external consistency (strict serializability). Also Cloud Spanner on GCP. |
+| **CockroachDB** | Postgres-compatible, Raft per range, hybrid logical clocks, serializable isolation by default. |
+| **TiDB** | MySQL-compatible; TiKV (Raft) storage; optional **TiFlash** columnar replicas for HTAP. |
+| **YugabyteDB** | Postgres-compatible query layer on a Raft-replicated DocDB store. |
+| **Amazon Aurora DSQL** | Serverless, active-active across regions with a witness region, Postgres-compatible subset, **optimistic concurrency control with snapshot isolation**, so the application must **retry** on commit conflicts. GA since May 2025. |
+| Vitess / Citus | *Not quite NewSQL*: sharding layers over MySQL/Postgres. You still pick shard keys and cross-shard transactions are limited. |
 
-## 4. **Normalized Schema**
-- **Description:** Data is divided into multiple related tables to eliminate redundancy.
-- **Use Case:** OLTP systems where data integrity and efficient updates are crucial.
-- **Pros:** Reduces data redundancy, improves data integrity.
-- **Cons:** Complex queries due to multiple joins, potential performance issues with read-heavy workloads.
+**What you gain**
+* SQL + ACID with horizontal **write** scaling and automatic shard splitting/rebalancing.
+* Replication via consensus means a node/zone failure is a leader election: no manual failover, no lost
+  acknowledged writes.
+* Multi-region options: survive a region failure with strongly consistent reads and writes.
 
-## 5. **Denormalized Schema**
-- **Description:** Data is combined into fewer tables to reduce the number of joins.
-- **Use Case:** Read-heavy applications where query performance is critical.
-- **Pros:** Faster read performance, simpler queries.
-- **Cons:** Increases data redundancy, more storage space required, potential data inconsistency.
+**What you pay**
+* **Commit latency:** a write waits for a replica quorum. In one region that's milliseconds; spread across regions it
+  is tens to 100+ ms. Spanner/Cockroach let you pin data (geo-partitioning, leaseholders) near users to reduce it.
+* **Cross-shard transactions** cost 2PC; keep hot transactions inside one range where you can.
+* **Hot ranges / contention:** sequential keys and hot rows still serialize on one leader; under OCC (DSQL) hot rows
+  produce **abort/retry storms**.
+* **Cost and operations** (or a managed-service bill), and **SQL compatibility gaps** (extensions, some DDL, triggers,
+  long transactions); test your ORM and queries.
+* **Clock dependence:** Spanner needs TrueTime hardware; CockroachDB assumes bounded clock skew.
 
-## 6. **Key-Value Store**
-- **Description:** Data is stored as key-value pairs.
-- **Use Case:** Simple data retrieval by key, caching, session management.
-- **Pros:** Fast retrieval, easy to scale horizontally.
-- **Cons:** Limited query capabilities, not suitable for complex queries.
+**When to say it in an interview**
+* Global financial ledger, multi-region inventory/booking where you can't accept split-brain or stale reads.
+* A relational workload that has outgrown one write primary and you want to avoid hand-built sharding.
+* Not for a typical single-region app: Postgres + replicas + cache is simpler and cheaper.
 
-## 7. **Document Store**
-- **Description:** Data is stored as documents (e.g., JSON, BSON).
-- **Use Case:** Flexible schema requirements, content management systems, logging.
-- **Pros:** Flexible schema, easy to handle complex and nested data structures.
-- **Cons:** Can lead to data redundancy, complex queries may be less efficient.
+| | Single primary + replicas | Manual sharding (Vitess/Citus/app) | NewSQL |
+|---|---|---|---|
+| Write scale | One writer | Many writers | Many writers |
+| Cross-shard ACID | n/a | Mostly your problem | Built in (2PC + consensus) |
+| Failover | Promote replica (seconds–minutes, possible loss if async) | Per-shard failover | Automatic, no acknowledged-write loss |
+| Resharding | n/a | Manual, risky | Automatic |
+| Multi-region writes | Hard (active-passive) | Hard | Supported (at a latency cost) |
+| Complexity / cost | Lowest | Medium (you own it) | Highest, or buy managed |
 
-## 8. **Column-Family Store**
-- **Description:** Data is stored in columns rather than rows.
-- **Use Case:** Analytical applications, wide-column data storage.
-- **Pros:** Efficient storage and retrieval of sparse data, fast read and write operations.
-- **Cons:** Complex schema design, not suitable for highly relational data.
+## How to choose: an interview playbook
+1. **State requirements and numbers**: reads vs writes, peak QPS, data size/growth, latency SLO, consistency needs,
+   regions, query flexibility.
+2. **Default to Postgres** unless a number or pattern says otherwise. "Single node + replicas handles X QPS and
+   Y TB, which covers our estimate."
+3. **Pick per data item**, not per system: money/inventory → relational; carts/sessions → KV; messages → wide-column;
+   search → search engine; analytics → OLAP; blobs → object store.
+4. **Name the trigger to change** ("if writes exceed N/s or we go multi-region, I'd move this table to X").
+5. **Keep one source of truth** and derive the rest with CDC ([polyglot persistence](database_types.md#polyglot-persistence-one-source-of-truth-many-derived-stores)).
 
-## 9. **Graph Database**
-- **Description:** Data is stored in nodes and edges representing entities and their relationships.
-- **Use Case:** Applications with complex relationships, social networks, recommendation systems.
-- **Pros:** Efficiently handles complex relationships and graph traversal queries.
-- **Cons:** Can be complex to design and query, not suitable for simple data models.
+| Prefer relational when… | Prefer NoSQL when… |
+|---|---|
+| Invariants and multi-row transactions matter (money, inventory, bookings) | Access is by key and you need massive, simple, partitioned throughput |
+| Access patterns are unknown or changing; ad-hoc queries/BI | Access patterns are fixed and known up front |
+| Data is relational and joined often | Entities are read/written whole (documents) or are huge time-ordered logs |
+| You want the DB to enforce constraints | Schema varies a lot, or you need very low-latency/multi-region AP behavior |
+| Scale fits one primary + replicas (more than most think) | Write throughput must scale linearly without app-level sharding |
 
-## 10. **Time-Series Database**
-- **Description:** Data is stored with a focus on time-based entries.
-- **Use Case:** Monitoring systems, IoT data, financial tickers.
-- **Pros:** Optimized for time-based queries and aggregations, efficient data compression.
-- **Cons:** Limited use case, may not be suitable for general-purpose data storage.
+## Pitfalls checklist
+**Relational**
+* Missing/wrong indexes, N+1 queries, `SELECT *`, unbounded `OFFSET` pagination (use keyset pagination).
+* Long transactions holding locks; connection storms (use a pooler such as PgBouncer).
+* Assuming replicas are up to date (read-your-writes bugs); assuming the default isolation prevents write skew.
+* Hot rows (counters, "inventory = 1") serializing writes; use sharded counters or queue-based serialization.
+* Big migrations that lock tables; no online schema-change plan.
+* Sharding too early, or with a poor shard key.
 
-## 11. **Hierarchical Database**
-- **Description:** Data is organized in a tree-like structure.
-- **Use Case:** Applications with a strict parent-child relationship, such as organizational charts.
-- **Pros:** Fast navigation and retrieval of hierarchical data.
-- **Cons:** Limited flexibility, difficult to manage many-to-many relationships.
+**NoSQL**
+* Modeling before knowing the queries, then needing a new access pattern (and a table rebuild).
+* Hot/unbounded partitions; tombstone buildup (Cassandra deletes/TTLs); large documents/items (DynamoDB item limit 400 KB,
+  MongoDB 16 MB).
+* Relying on eventual consistency where a read-after-write is required; stale GSI reads.
+* Using multi-document transactions or scans as the main path; expecting joins.
+* Duplicated data drifting out of sync with no reconciliation job.
+* Vendor lock-in and query-language differences.
 
-## 12. **Distributed Table Topology**
-- **Description:** Data is distributed across multiple nodes or regions to achieve high availability and scalability.
-- **Use Case:** Large-scale applications requiring high availability, fault tolerance, and low latency.
-- **Pros:** Improved scalability and fault tolerance, reduced latency for geographically distributed users.
-- **Cons:** Increased complexity in data consistency and coordination, potential for network partitions.
+**NewSQL**
+* Ignoring commit latency and cost; assuming full Postgres/MySQL compatibility; hot ranges; OCC retry storms.
 
-## 13. **Sharded Table Topology**
-- **Description:** Data is partitioned across multiple shards or databases based on a sharding key.
-- **Use Case:** High-throughput applications, large datasets.
-- **Pros:** Horizontal scalability, distributes load evenly across shards.
-- **Cons:** Complex shard management, potential hot spots if sharding key is not chosen correctly.
+## Real-world examples
+* **Uber** moved its fulfillment platform from a NoSQL design to a MySQL-based store: [blog](https://www.uber.com/blog/fulfillment-platform-rearchitecture/).
+* **Stack Overflow** ran a very large traffic volume on a small number of vertically scaled SQL Servers: [talk](https://www.slideshare.net/InfoQ/scaling-stack-overflow-keeping-it-vertical-by-obsessing-over-performance).
+* **Netflix** uses Cassandra and other NoSQL for availability-first workloads: [blog](https://netflixtechblog.com/nosql-at-netflix-e937b660b4c).
+* **Gojek** migrated a write-heavy workload from PostgreSQL to Cassandra: [blog](https://www.gojek.io/blog/database-optimisation-on-cassandra).
+* **Wordnik** moved from MySQL to MongoDB for its API workload: [post](http://highscalability.com/blog/2011/2/15/wordnik-10-million-api-requests-a-day-on-mongodb-and-scala.html).
 
+## Interview follow-ups
+* *"SQL or NoSQL for this system?"* "Relational by default. Money and inventory are invariants, so Postgres. Carts
+  and sessions are key-value, messages could go to Cassandra if write volume demands it. Here are the numbers that
+  would make me change."
+* *"Doesn't SQL not scale?"* Walk the ladder: indexes, replicas + cache, scale up, partition tables, split by
+  service, shard, then NewSQL. The real limit is the single write primary.
+* *"How would you shard a relational database?"* Shard key (`user_id`/`tenant_id`), keep related data together,
+  avoid cross-shard transactions (sagas if needed), a lookup service or consistent hashing, plan resharding.
+* *"What does eventual consistency mean for the user?"* Stale reads for a window, so use it for feeds/counters and
+  route read-your-writes (or critical reads) to the primary, a quorum read, or a session-pinned replica.
+* *"What is NewSQL / distributed SQL and when would you use it?"* SQL + ACID on top of consensus-replicated shards;
+  use it for multi-region strongly consistent data or when you've outgrown one primary. The cost is commit latency
+  (quorum round trip) and money.
+* *"Why not Aurora for multi-region writes?"* Classic Aurora has one writer (Global Database is active-passive).
+  Aurora DSQL is the active-active one, with OCC and a Postgres subset.
+* *"DynamoDB vs Cassandra?"* DynamoDB: managed, fixed ops burden, transactions, on-demand scaling, vendor lock-in.
+  Cassandra: self-managed (or via a managed offering), tunable consistency, portable across clouds, more tuning.
+* *"Document store or Postgres `jsonb`?"* `jsonb` if the rest of the data is relational and scale fits one primary;
+  MongoDB if the whole domain is document-shaped and you want built-in sharding.
+* *"How do you handle a hot key?"* Cache it, shard the key (`key#n`), batch/aggregate writes, or split the tenant.
 
 # References
 * [grokking-the-system-design-interview](https://www.educative.io/courses/grokking-the-system-design-interview/YQlK1mDPgpK)
 * [system-design-primer](https://github.com/donnemartin/system-design-primer#database)
-* [NodeFlair Blog Post](https://www.nodeflair.com/blog/sql-vs-nosql-databases-system-design-interview#:~:text=NoSQL%20stores%20commonly%20accessed%20data,do%20not%20violate%20predefined%20schemas.)
-* https://medium.com/must-know-computer-science/system-design-sql-vs-nosql-4cdfb9f53d69
-* https://www.guru99.com/nosql-tutorial.html
-* https://www.codekarle.com/system-design/Database-system-design.html
+* [NodeFlair: SQL vs NoSQL in system design interviews](https://www.nodeflair.com/blog/sql-vs-nosql-databases-system-design-interview)
 * https://blog.bytebytego.com/p/understanding-database-types
+* https://www.codekarle.com/system-design/Database-system-design.html
+* Designing Data-Intensive Applications, Chapters 2, 3, 5, 6, 7 and 9
+* [Spanner: Google's Globally-Distributed Database](https://static.googleusercontent.com/media/research.google.com/en//archive/spanner-osdi2012.pdf)
+* [Amazon Aurora DSQL is now generally available (AWS)](https://aws.amazon.com/about-aws/whats-new/2025/05/amazon-aurora-dsql-generally-available)
+* [Concurrency control in Amazon Aurora DSQL (AWS Database Blog)](https://aws.amazon.com/blogs/database/concurrency-control-in-amazon-aurora-dsql)

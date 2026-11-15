@@ -28,8 +28,8 @@ Each note follows the same shape: **TL;DR → core ideas → diagram → trade-o
 _What to reach for. Each page: what it is, when to use it, when not to, scaling model, consistency/durability guarantees, failure behaviour, and links to the concepts it relies on._
 
 ### 1.1 Databases
-- [Types of Databases](basics/database_types.md)
-- [SQL vs NoSQL](basics/database_sql_vs_nosql.md)
+- [Types of Databases (landscape & how to choose)](basics/database_types.md)
+- [SQL vs NoSQL (and NewSQL / distributed SQL)](basics/database_sql_vs_nosql.md)
 - [Database Indexes (B-Tree vs LSM-Tree)](basics/database_indexing.md)
 - Postgres / MySQL _(planned)_
 - DynamoDB / Cassandra _(planned)_
