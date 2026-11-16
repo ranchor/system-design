@@ -65,5 +65,6 @@ Giant MoE at very large scale?                                                  
 
 # References
 * [DistServe (OSDI '24)](https://arxiv.org/abs/2401.09670), [Splitwise (ISCA '24)](https://arxiv.org/abs/2311.18677), [Mooncake](https://arxiv.org/abs/2407.00079)
-* [NVIDIA Dynamo](https://github.com/ai-dynamo/dynamo), [llm-d](https://github.com/llm-d/llm-d), [vLLM](https://docs.vllm.ai/)
+* [NVIDIA Dynamo](https://github.com/ai-dynamo/dynamo), [llm-d](https://github.com/llm-d/llm-d), [vLLM disaggregated prefill](https://docs.vllm.ai/en/latest/features/disagg_prefill.html), [llm-d architecture](https://llm-d.ai/docs/architecture/architecture)
+* Related: [LLM inference basics](llm_inference_basics.md), [Parallelism](llm_parallelism.md), [Serving platform](llm_serving_platform.md)
 * [Snowflake: The Snowflake Elastic Data Warehouse (compute/storage separation)](https://dl.acm.org/doi/10.1145/2882903.2903741)

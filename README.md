@@ -36,6 +36,8 @@ _What to reach for. Each page: what it is, when to use it, when not to, scaling 
 - [Cassandra](basics/cassandra.md)
 - [MongoDB](basics/mongodb.md)
 - [Distributed SQL deep dive: Amazon Aurora DSQL](basics/aurora_dsql.md)
+- [Time Series Databases](basics/time_series_databases.md)
+- [Change Data Capture (CDC)](basics/change_data_capture.md)
 
 ### 1.2 Blob / Object Storage
 - [Blob / Object Storage](basics/blob_storage.md)
@@ -43,10 +45,11 @@ _What to reach for. Each page: what it is, when to use it, when not to, scaling 
 
 ### 1.3 Search
 - [Elasticsearch](basics/elasticsearch.md)
+- [Vector Databases](basics/vector_databases.md) (RAG view: [RAG & Vector Search](basics/rag_vector_search.md))
 
 ### 1.4 Caching
 - [Caching](basics/caching.md)
-- [Memcached vs Redis](basics/redis_memcached.md)
+- [Redis (and Redis vs Memcached)](basics/redis_memcached.md)
 - [Content Delivery Network (CDN)](basics/cdn.md)
 
 ### 1.5 Queues & Pub/Sub
@@ -54,6 +57,7 @@ _What to reach for. Each page: what it is, when to use it, when not to, scaling 
 - [Kafka](basics/kafka.md)
 - [SQS](basics/sqs.md)
 - [Kafka vs SQS](basics/kafka_vs_sqs.md)
+- [Temporal (durable workflows)](basics/temporal.md)
 
 ### 1.6 Stream Processing
 - [Batch Processing vs Stream Processing](basics/bp_sp.md)
@@ -85,8 +89,16 @@ _What to reach for. Each page: what it is, when to use it, when not to, scaling 
 - [Geospatial Indexes (S2, H3)](basics/s2_h3.md)
 
 ### 1.12 LLM Inference & Serving
+- [LLM Inference Basics](basics/llm_inference_basics.md)
+- [Continuous Batching & Scheduling](basics/continuous_batching_scheduling.md)
+- [KV Cache, Prefix Caching & Cache-Aware Routing](basics/kv_cache_prefix_caching.md)
+- [Parallelism for Serving (TP/PP/DP/EP/CP)](basics/llm_parallelism.md)
+- [Speculative Decoding & Quantization](basics/speculative_decoding_quantization.md)
 - [Disaggregated Serving](basics/disaggregated_serving.md)
 - [Prefill/Decode Disaggregated Serving](basics/prefill_decode_disaggregation.md)
+- [LLM Serving Platform: Gateway, Routing, Autoscaling](basics/llm_serving_platform.md)
+- [RAG & Vector Search at Scale](basics/rag_vector_search.md)
+- [Distributed Training Overview](basics/distributed_training.md)
 
 ---
 

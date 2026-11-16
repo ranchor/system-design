@@ -37,7 +37,7 @@ Client ─POST /jobs─▶ API ─▶ Job store (PENDING) + Queue ─▶ Worker 
 |---|---|
 | Simple background tasks, retries, DLQ | SQS/RabbitMQ + workers |
 | Ordered per-entity processing, replay | Kafka |
-| Multi-step, long (days), human steps, timers | Workflow engine (Temporal, Step Functions) ([Sagas](multi_step_processes.md)) |
+| Multi-step, long (days), human steps, timers | Workflow engine (Temporal, Step Functions) ([Temporal](temporal.md), [Sagas](multi_step_processes.md)) |
 | Scheduled/recurring | Cron + leader election or scheduler service ([Leader election](leader_election.md)) |
 | Very large batch | Spark/Flink on a cluster ([Spark](spark.md)) |
 | Short (<15 min), spiky | Serverless functions with queue triggers |
@@ -46,6 +46,19 @@ Client ─POST /jobs─▶ API ─▶ Job store (PENDING) + Queue ─▶ Worker 
 - **Polling**: `GET /jobs/{id}` with `Retry-After`; cheap and simple.
 - **SSE/WebSocket**: push progress for interactive UIs; **webhook** for server-to-server ([Real-time updates](realtime_updates.md), [LP/WS/SSE](lp_ws_sse_wh.md)).
 - Return partial progress (`percent`, `stage`) and a result URL (presigned) when done ([Large blobs](large_blobs.md)).
+
+## Common deep dives
+**Handling failures**: workers crash or hang mid-job. Use a lease/visibility timeout plus heartbeats; an expired lease re-queues the job. Persist job state (`PENDING → RUNNING → SUCCEEDED/FAILED`) in the job store, not in worker memory.
+
+**Handling repeated failures**: cap attempts, use exponential backoff + jitter, classify retryable vs permanent errors, and move **poison jobs to a DLQ** with alerting and a replay tool. Add a circuit breaker if a downstream dependency is the cause ([Resilience](resilience_patterns.md)).
+
+**Preventing duplicate work**: at-least-once queues redeliver. Combine an **idempotency key** on submit (dedupe at the API), an **atomic claim** (`UPDATE … WHERE status='PENDING'`) and idempotent side effects ([Idempotency](idempotency.md)). Dedupe identical in-flight jobs by a deterministic job key.
+
+**Managing queue backpressure**: bound queue length, reject or defer new work when the backlog age exceeds SLO (429 + `Retry-After`), autoscale workers on **oldest-message age**, and rate-limit per tenant ([Backpressure](backpressure_load_shedding.md)).
+
+**Handling mixed workloads**: separate queues/worker pools per job class (short vs long, CPU vs GPU), priority queues, per-tenant fairness quotas, and timeouts per class so heavy jobs can't starve light ones.
+
+**Orchestrating job dependencies**: for DAGs and multi-step flows use a workflow engine; Temporal/Step Functions track step state, retries, timers and compensation ([Temporal](temporal.md), [Sagas](multi_step_processes.md)). For simple fan-out/fan-in use a parent job with a counter or completion barrier in the job store; for scheduled batch DAGs, a scheduler such as Airflow.
 
 ## Pitfalls
 - Synchronous requests for slow work (timeouts, thread exhaustion); visibility timeout shorter than the job; non-idempotent retries (double emails/charges); unbounded queues; no DLQ; jobs holding DB locks for minutes; losing state on worker crash because progress lives in memory; one queue for everything.

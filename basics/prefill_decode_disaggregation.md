@@ -92,7 +92,7 @@ Sizing intuition: KV size ∝ prompt tokens; transfer time = KV bytes ÷ bandwid
 Research: **DistServe** (OSDI '24), **Splitwise** (ISCA '24), **Mooncake** (Kimi; KV-centric disaggregation, FAST '25), **TetriInfer**. Systems: **vLLM** (disaggregated prefill connectors), **SGLang**, **NVIDIA Dynamo**, **llm-d** (Kubernetes-native, vLLM-based), TensorRT-LLM; large providers run P/D splits internally. Check each project's current docs for maturity and supported transports (this area changes quickly).
 
 ## Case study: NVIDIA Dynamo
-Dynamo (announced March 2025 as the successor to Triton Inference Server for multi-node generative AI; open source on GitHub, `ai-dynamo/dynamo`) is a good concrete example of the architecture above. It supports TensorRT-LLM, vLLM, SGLang and PyTorch backends. Its four components map directly to the design pieces in this note:
+Dynamo (introduced by NVIDIA in 2025 as the successor to Triton Inference Server for multi-node generative AI; open source on GitHub, `ai-dynamo/dynamo`) is a good concrete example of the architecture above. It supports TensorRT-LLM, vLLM, SGLang and PyTorch backends. Its four components map directly to the design pieces in this note:
 
 | Dynamo component | Role | Maps to |
 |---|---|---|
@@ -130,4 +130,6 @@ Takeaway for interviews: the headline gains come from combining **per-phase para
 * [Mooncake: A KVCache-centric Disaggregated Architecture for LLM Serving](https://arxiv.org/abs/2407.00079)
 * [Sarathi-Serve: chunked prefills (OSDI '24)](https://arxiv.org/abs/2403.02310), [Efficient Memory Management for LLM Serving with PagedAttention](https://arxiv.org/abs/2309.06180)
 * [Introducing NVIDIA Dynamo (NVIDIA Technical Blog)](https://developer.nvidia.com/blog/introducing-nvidia-dynamo-a-low-latency-distributed-inference-framework-for-scaling-reasoning-ai-models/)
-* [vLLM docs: disaggregated prefilling](https://docs.vllm.ai/), [NVIDIA Dynamo repo](https://github.com/ai-dynamo/dynamo), [llm-d](https://github.com/llm-d/llm-d)
+* [vLLM docs: disaggregated prefilling](https://docs.vllm.ai/en/latest/features/disagg_prefill.html), [NVIDIA Dynamo repo](https://github.com/ai-dynamo/dynamo), [llm-d repo](https://github.com/llm-d/llm-d), [llm-d architecture](https://llm-d.ai/docs/architecture/architecture)
+* [Orca (OSDI '22)](https://www.usenix.org/conference/osdi22/presentation/yu), [SGLang / RadixAttention](https://arxiv.org/abs/2312.07104), [FlashAttention](https://arxiv.org/abs/2205.14135)
+* Related notes: [LLM inference basics](llm_inference_basics.md), [Continuous batching](continuous_batching_scheduling.md), [KV cache](kv_cache_prefix_caching.md), [Parallelism](llm_parallelism.md), [Serving platform](llm_serving_platform.md)

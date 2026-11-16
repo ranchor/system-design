@@ -23,6 +23,8 @@
 - **CQRS ≠ event sourcing**: you can do CQRS with a normal DB + CDC, or event sourcing without separate read stores.
 
 ## Change Data Capture (CDC)
+_Full deep dive: [Change Data Capture](change_data_capture.md)._
+
 - **Log-based CDC** (Debezium on Postgres WAL / MySQL binlog / Mongo oplog; DynamoDB Streams; Spanner change streams): low latency, preserves commit order, no app changes, captures deletes.
 - **Alternatives**: trigger-based (overhead), timestamp polling (misses deletes, ordering issues), dual writes (unsafe: [Reliable messaging](reliable_messaging.md)).
 - **Uses**: cache invalidation/refresh, search index sync, data warehouse/lake ingestion, replicating to other services, outbox relay, audit, **strangler-fig migrations**.
